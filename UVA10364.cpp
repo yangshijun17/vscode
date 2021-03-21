@@ -18,7 +18,7 @@ int main()
         }
         if(los%4!=0||max>los/4)
         {
-            printf("no");
+            printf("no\n");
             continue;
         }
         for (int i = 0; i <= 20;i++){
@@ -26,16 +26,16 @@ int main()
         }
             if (dfs(a, 1, los / 4, 0))
             {
-                printf("yes");
+                printf("yes\n");
             }
             else
-                printf("no");
+                printf("no\n");
         q--;
     }
 }
 int dfs(int arr[],int depth,int left,int now)
 {
-    if(depth==4){
+    if(depth==3){
         return 1;
     }
     for (int i = now; i < m;i++)
