@@ -1,35 +1,49 @@
-#include<stdio.h>
-#define N 1000
+#include <stdio.h>
+int mergesort(int A[], int p, int r);
+int merge(int A[], int p, int q, int r);
 int main()
 {
-int i,j,a[N][N],b[N][N],c[N][N],s=0,k,e[N][N],m,n;
-//printf("请输入你的关系矩阵的阶n(n<=1000):\n");
-scanf("%d",&n);
-for(i=0;i<n;i++)
-for(j=0;j<n;j++)
-{
-scanf("%d",&a[i][j]);
-e[i][j]=a[i][j];
-b[i][j]=a[i][j];
+    int n, a[20];
+    scanf("%d", &n);
+    for (int i = 1; i <= n;i++)
+    {
+        scanf("%d", &a[i]);
+    }
+    printf("%d", mergesort(a, 1, n));
 }
-for(m=1;m<n;m++)
-{
-for(i=0;i<n;i++)
-for(j=0;j<n;j++)
-{
-for(s=0,k=0;k<n;k++)
-s+=b[i][k]*a[k][j];
-c[i][j]=s;
-if(e[i][j]==0&&c[i][j]!=0)
-e[i][j]=c[i][j];
+int merge(int A[], int p, int q, int r) {
+    int i, j, k, inversion_num = 0;
+
+    int n1 = q - p + 1;
+    int n2 = r - q;
+
+    int L[30];
+    int R[30];
+
+    for (i = 0; i < n1; i++) L[i] = A[p + i];
+    for (j = 0; j < n2; j++) R[j] = A[q + j + 1];
+
+    for(i = j = 0, k = p; k <= r; k++) {
+        if (L[i] <= R[j]) {
+            A[k] = L[i++];
+        } else {
+            A[k] = R[j++];
+            inversion_num += n1 - i;
+        }
+    }
+
+    return inversion_num;
 }
-for(i=0;i<n;i++)
-for(j=0;j<n;j++)
-b[i][j]=c[i][j];
-}
-for(i=0;i<n;i++)
-for(j=0;j<n;j++)
-if(e[i][j]!=0)
-printf("<%d,%d>,",i+1,j+1);
-printf("\n");
+
+int merge_sort(int A[], int p, int r) {
+    if (p < r) {
+        int inversion_num = 0;
+        int q = (p + r) / 2;
+        inversion_num += merge_sort(A, p, q);
+        inversion_num += merge_sort(A, q + 1, r);
+        inversion_num += merge(A, p, q, r);
+        return inversion_num;
+    } else {
+        return 0;
+    }
 }
