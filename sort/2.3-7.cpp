@@ -16,7 +16,7 @@ int main()
     for (int i = 1; i <= n;i++)
     {
         int r = x - s[i], left = i,right=n;
-        while(left<right)
+        while(left<right)//¶þ·Ö²éÕÒ
         {
             int mid = (left + right) / 2;
             if(s[mid]==r){

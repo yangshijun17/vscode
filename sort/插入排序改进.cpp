@@ -1,6 +1,6 @@
 #include<stdio.h>
 int n, a[20];
-void sort(int a[], int r);
+void sort(int a[], int r);//其实就是将二重循环改成递归
 int main()
 {
     scanf("%d", &n);

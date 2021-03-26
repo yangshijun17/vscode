@@ -27,7 +27,7 @@ int mergesort(int a[],int left,int right)
         return 0;
     }
 }
-    int merge(int a[], int left, int mid, int right)
+int merge(int a[], int left, int mid, int right)
     {
         int p = mid - left + 1, i, j;
         int q = right - mid, l[20], r[20];
