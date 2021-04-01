@@ -1,49 +1,60 @@
-#include <stdio.h>
-int mergesort(int A[], int p, int r);
-int merge(int A[], int p, int q, int r);
+#include<stdio.h>
+void build(int a[]);
+void care(int a[],int i);
+void sort(int a[]);
+int n;
 int main()
 {
-    int n, a[20];
-    scanf("%d", &n);
-    for (int i = 1; i <= n;i++)
-    {
-        scanf("%d", &a[i]);
-    }
-    printf("%d", mergesort(a, 1, n));
+	int a[20];
+	scanf("%d", &n);
+	for (int i = 1; i <= n;i++)
+	{
+		scanf("%d", &a[i]);
+	}
+	int nn = n;
+	sort(a);
+	for (int i = 1; i <= nn;i++)
+	{
+		printf("%d ", a[i]);
+	}
 }
-int merge(int A[], int p, int q, int r) {
-    int i, j, k, inversion_num = 0;
-
-    int n1 = q - p + 1;
-    int n2 = r - q;
-
-    int L[30];
-    int R[30];
-
-    for (i = 0; i < n1; i++) L[i] = A[p + i];
-    for (j = 0; j < n2; j++) R[j] = A[q + j + 1];
-
-    for(i = j = 0, k = p; k <= r; k++) {
-        if (L[i] <= R[j]) {
-            A[k] = L[i++];
-        } else {
-            A[k] = R[j++];
-            inversion_num += n1 - i;
-        }
-    }
-
-    return inversion_num;
+void care(int a[],int i)
+{
+	int left = 2 * i;
+	int right = 2 * i + 1;
+	int max = -1;
+	if(left<=n&&a[i]<a[left])
+	{
+		max = left;
+	}
+	else
+		max = i;
+	if(right<=n&&a[max]<a[right])
+	{
+		max = right;
+	}
+	if(max!=i)
+	{
+		int j;
+		j = a[max], a[max] = a[i], a[i] = j;
+		care(a, max);
+	}
 }
-
-int merge_sort(int A[], int p, int r) {
-    if (p < r) {
-        int inversion_num = 0;
-        int q = (p + r) / 2;
-        inversion_num += merge_sort(A, p, q);
-        inversion_num += merge_sort(A, q + 1, r);
-        inversion_num += merge(A, p, q, r);
-        return inversion_num;
-    } else {
-        return 0;
-    }
+void build(int a[])
+{
+	for (int i = n / 2; i >= 1;i--)
+	{
+		care(a, i);
+	}
+}
+void sort(int a[])
+{
+	build(a);
+	for (int i = n; i >= 2;i--)
+	{
+		int t;
+		t = a[1], a[1] = a[i], a[i] = t;
+		n--;
+		care(a, 1);
+	}
 }
