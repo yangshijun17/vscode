@@ -1,60 +1,49 @@
 #include<stdio.h>
-void build(int a[]);
-void care(int a[],int i);
-void sort(int a[]);
-int n;
+#include<stdlib.h>
+#define LIST_INIT_SIZE 20
+#define LISTINCREMENT 10
+typedef int ElemType;
+typedef struct
+   { ElemType *elem;
+     int length;
+     int listsize;
+    } SqList;
+int insert(SqList &L, ElemType x);
 int main()
 {
-	int a[20];
-	scanf("%d", &n);
-	for (int i = 1; i <= n;i++)
-	{
-		scanf("%d", &a[i]);
-	}
-	int nn = n;
-	sort(a);
-	for (int i = 1; i <= nn;i++)
-	{
-		printf("%d ", a[i]);
-	}
-}
-void care(int a[],int i)
+    SqList L;
+    ElemType x;
+    int i;
+    L.elem=(ElemType *)malloc(sizeof(ElemType)*LIST_INIT_SIZE);
+    L.length=0;
+    L.listsize=LIST_INIT_SIZE;
+    scanf("%d",&x);
+    while (x)
+    {
+        L.elem[L.length++]=x;
+        scanf("%d",&x);
+    }
+    scanf("%d",&x);
+	insert(L,x);
+    for(i=0;i<L.length;i++)
+        printf("%8d",L.elem[i]);
+    if (L.length>L.listsize) printf("\n error");
+	return 0;
+}		
+int insert(SqList &L,ElemType x)
 {
-	int left = 2 * i;
-	int right = 2 * i + 1;
-	int max = -1;
-	if(left<=n&&a[i]<a[left])
+	int i = 0;
+	for (; i < L.length;i++)
 	{
-		max = left;
+		if(x<L.elem[i])
+			break;
 	}
-	else
-		max = i;
-	if(right<=n&&a[max]<a[right])
+	for (int j = L.length-1; j >= i;j--)
 	{
-		max = right;
+		L.elem[j + 1] = L.elem[j];
 	}
-	if(max!=i)
-	{
-		int j;
-		j = a[max], a[max] = a[i], a[i] = j;
-		care(a, max);
-	}
-}
-void build(int a[])
-{
-	for (int i = n / 2; i >= 1;i--)
-	{
-		care(a, i);
-	}
-}
-void sort(int a[])
-{
-	build(a);
-	for (int i = n; i >= 2;i--)
-	{
-		int t;
-		t = a[1], a[1] = a[i], a[i] = t;
-		n--;
-		care(a, 1);
-	}
+	L.elem[i] = x;
+	L.length++;
+    L.listsize++;
+    return 0;
 }
