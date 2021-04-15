@@ -1,49 +1,57 @@
-#include<stdio.h>
-#include<stdlib.h>
-#define LIST_INIT_SIZE 20
-#define LISTINCREMENT 10
+#include <stdio.h>
+#include <stdlib.h>
 typedef int ElemType;
-typedef struct
-   { ElemType *elem;
-     int length;
-     int listsize;
-    } SqList;
-int insert(SqList &L, ElemType x);
-int main()
-{
-    SqList L;
-    ElemType x;
-    int i;
-    L.elem=(ElemType *)malloc(sizeof(ElemType)*LIST_INIT_SIZE);
-    L.length=0;
-    L.listsize=LIST_INIT_SIZE;
-    scanf("%d",&x);
-    while (x)
+typedef  struct  Dnode
     {
-        L.elem[L.length++]=x;
-        scanf("%d",&x);
-    }
-    scanf("%d",&x);
-	insert(L,x);
-    for(i=0;i<L.length;i++)
-        printf("%8d",L.elem[i]);
-    if (L.length>L.listsize) printf("\n error");
-	return 0;
-}		
-int insert(SqList &L,ElemType x)
+        ElemType     data;
+        struct  Dnode *prior,*next;
+    } *DuLinkList;
+
+    void adjust(DuLinkList L);
+    int main()
+    {
+        DuLinkList L, p, tail;
+        int n, i;
+        L = tail = (DuLinkList)malloc(sizeof(struct Dnode));
+        scanf("%d", &n);
+        for (i = 1; i <= n; i++)
+        {
+            p = (DuLinkList)malloc(sizeof(struct Dnode));
+            scanf("%d", &p->data);
+            tail->next = p;
+            p->prior = tail;
+            tail = p;
+        }
+        L->prior = tail;
+        tail->next = L;
+        adjust(L);
+        p = L->next;
+        while (p != L)
+        {
+            printf(" %d", p->data);
+            p = p->next;
+        }
+}
+void adjust(DuLinkList L)
 {
-	int i = 0;
-	for (; i < L.length;i++)
-	{
-		if(x<L.elem[i])
-			break;
+	DuLinkList now,q,tail;
+	int count=0;          //count记录数组下标；当数组下标为偶数时，当前结点移动到an后 
+	now=L->next;     
+	tail=L->prior;     //tail指向表尾结点an
+	while(now!=tail){
+		count++;
+		if(count%2==0){         //count是偶数  
+			q=now;                //q指向p所指结点 
+			now=now->next;         //p后移 
+			q->prior->next=q->next;         //q的前驱结点的next指针指向q的后继 
+			q->next->prior=q->prior;        //q的后继结点的prior指针指向q的前驱 （也就是将ai删除） 
+			
+			q->next=tail->next;
+			tail->next->prior=q;
+			q->prior=tail;
+			tail->next=q; 
+		}
+		else      
+			now=now->next;
 	}
-	for (int j = L.length-1; j >= i;j--)
-	{
-		L.elem[j + 1] = L.elem[j];
-	}
-	L.elem[i] = x;
-	L.length++;
-    L.listsize++;
-    return 0;
 }
