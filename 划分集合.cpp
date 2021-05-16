@@ -19,6 +19,7 @@ int main()
     {
         sum2 += a[i];
     }
+    
     printf("%d %d", sum1, sum2);
 }
 void patition(int *a, int n)

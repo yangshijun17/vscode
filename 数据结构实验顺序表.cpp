@@ -85,6 +85,8 @@ int main()
                 if (flag == 0)
                 {
                     printf("\n欢迎下次使用本系统!\n");
+                    getchar();
+                    getchar();
                     return 0;
                 }
                 else if (flag == 1)
@@ -110,7 +112,7 @@ int main()
                 }
                 else
                 {
-                    printf("输入的值不对哦，请从1或2中选择一个进行输入\n");
+                    printf("输入的值不对哦，请从0或1或2中选择一个进行输入\n");
                 }
             }
         }
@@ -377,7 +379,13 @@ int main()
             scanf("%s", nam);
             int ll = 0;
             ll = AddList(Lists, nam);
-            printf("您已经成功添加一个线性表啦!\n");
+            if (ll == ERROR)
+            {
+                printf("线性表组溢出!\n");
+            }
+            else
+
+                printf("您已经成功添加一个线性表啦!\n");
             break;
         }
         case 14:
@@ -432,7 +440,7 @@ int main()
             char filename[100];
             printf("请输入文件路径与文件名:");
             scanf("%s", filename);
-            int j = SaveList(Lists.elem[num-1].L, filename);
+            int j = SaveList(Lists.elem[num - 1].L, filename);
             if (j == INFEASIBLE)
             {
                 printf("该线性表不存在，赶快去创建一个吧!\n");
@@ -453,7 +461,7 @@ int main()
             char filename[100];
             printf("请输入文件路径与文件名\n");
             scanf("%s", filename);
-            int j = LoadList(Lists.elem[num-1].L, filename);
+            int j = LoadList(Lists.elem[num - 1].L, filename);
             if (j == INFEASIBLE)
             {
                 printf("该线性表不为空！\n");
@@ -469,7 +477,9 @@ int main()
             break;
         }
         case 0:
+        {
             break;
+        }
         } //end of switch
         system("pause");
     } //end of while
