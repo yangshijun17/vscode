@@ -1,7 +1,7 @@
 #include<stdio.h>
-#include"function.h"
+#include<function.h>
 int main()
 {
-    function1();
+    print();
     return 0;
 }
