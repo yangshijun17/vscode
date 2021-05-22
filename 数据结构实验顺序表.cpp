@@ -797,7 +797,7 @@ status LocateList(LISTS Lists, char ListName[])
     for (int i = 0; i < Lists.length; i++)
     {
         int t = 0, flag = 1;
-        while (Lists.elem[i].name[t] && ListName[t])
+        while (Lists.elem[i].name[t] || ListName[t])
         {
             if (Lists.elem[i].name[t] != ListName[t])
             {

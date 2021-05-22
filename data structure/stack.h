@@ -25,13 +25,22 @@ int push(Sqstack s,ElemType e)
     s.top++;
     return OK;
 }
-int pop(Sqstack s,ElemType &e)
+int pop(Sqstack s,ElemType *e)
 {
     if(s.top==0)
     {
         return ERROR;
     }
     s.top--;
-    e = s.elem[s.top];
+    e = &s.elem[s.top];
     return OK;
+}
+int stackempty(Sqstack s)
+{
+    if(s.top==0)
+    {
+        return OK;
+    }
+    else
+        return ERROR;
 }
