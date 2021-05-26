@@ -145,7 +145,7 @@ int main()
                     printf("选择的操作不对哦，请重新输入\n");
                 }
             }
-            while (flag != 1 && flag != 2)
+            /*while (flag != 1 && flag != 2)
             {
                 scanf("%d", &op);
                 if (op > 19 || op < 0)
@@ -154,7 +154,7 @@ int main()
                 }
                 else
                     break;
-            }
+            }*/
         }
         else
         {
@@ -367,6 +367,10 @@ int main()
             if (t == INFEASIBLE)
             {
                 printf("线性表不存在！\n");
+            }
+            else if(t==ERROR)
+            {
+                printf("线性表为空！\n");
             }
             printf("\n");
             break;
@@ -718,7 +722,7 @@ status ListTrabverse(SqList L)
     }
     if (L.length == 0)
     {
-        return OK;
+        return ERROR;
     }
     else
     {

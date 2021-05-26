@@ -1,4 +1,4 @@
-#include<D:\vscode_c\data structure\tree\def.h>
+#include<D:\vscode_c\datastructure\tree\def.h>
 BiTNode *LocateTree(BiTree T, KeyType e, TElemType c);
 status InsertNode(BiTree &T,KeyType e,int LR,TElemType c)
 {

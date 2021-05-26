@@ -1,724 +1,707 @@
-#include <stddef.h> //malloc等动态分配函数
-#include <stdlib.h> //系统清屏函数
-#include <stdio.h>  //标准输入输出函数
-#include <math.h>
-#include <limits.h>
+//Linear Table On Linked Storage Structure
+#include <stdio.h>
+#include <malloc.h>
+#include <stdlib.h>
 
+//编译预处理
+//状态值和最大长度的宏定义
 #define TRUE 1
 #define FALSE 0
 #define OK 1
 #define ERROR 0
 #define LIST_INIT_SIZE 10
 #define MaxSize 10
-#define FILE_SAVE_PATH ".\\in.txt" //表示数据文件的存储
-#define INFEASIBLE -1
 #define OVERFLOW -2
+#define INFEASTABLE -1
+#define FILENAME_LENGTH 30
 
-#define LIST_INIT_SIZE 100
-#define LISTINCREMENT 10
-
-typedef int Status; //status是函数类型，其值为函数结果状态代码
+//定义状态返回值类型和数据元素类型
 typedef int status;
-typedef int Boolean;
-typedef int Elemtype; //ElemType是用户自定义类型，为了便于根据不同使用情况修改代码
 typedef int ElemType;
-typedef struct
-{ //顺序表（顺序结构）的定义
-    ElemType *elem;
-    int length;
-    int listsize;
-} SqList;
-typedef struct
-{ //线性表的管理表定义
-    struct
-    {
-        char name[30];
-        SqList L;
-    } elem[10];
-    int length;
-    int listsize;
-} LISTS;
 
-void menu_1(void);
-void menu_2(SqList *L);
-void fileop(void);
-Status Loaddata(FILE *fp, SqList *L);
-Status filere(SqList *L1, SqList *L2);
-status InitList(SqList &L);
-status DestroyList(SqList &L);
-status ClearList(SqList &L);
-status ListEmpty(SqList L);
-status ListLength(SqList L);
-status GetElem(SqList L, int i, ElemType &e);
-status LocateElem(SqList L, ElemType e); //简化过
-status PriorElem(SqList L, ElemType cur, ElemType &pre_e);
-status NextElem(SqList L, ElemType cur, ElemType &next_e);
-status ListInsert(SqList &L, int i, ElemType e);
-status ListDelete(SqList &L, int i, ElemType &e);
-status ListTraverse(SqList L); //简化过
-
-FILE *fp;
-
-Status main(void)
+//定义链表节点类型
+typedef struct Node
 {
-    menu_1();
-    return 0;
-}
+    ElemType data;
+    struct Node *next;
+} Node, *Linklist;
 
-//FILE 文件管理函数
-
-//fileread 文件打开
-Status filere(SqList *L1, SqList *L2)
+//定义多线性表表头指针构成的链表节点类型
+typedef struct HeadNodePointer
 {
-    FILE *fp = fopen(FILE_SAVE_PATH, "r");
-    if (fp == NULL)
-    {
-        printf("数据文件打开失败\n");
-        return 0;
-    }
-    printf("当前正在读取表一的数据。\n");
-    if (Loaddata(fp, L1) == ERROR)
-    {
-        printf("数据存储失败！\n");
-        return ERROR;
-    }
-    if (Loaddata(fp, L2) == ERROR)
-    {
-        printf("数据存储失败！\n");
-        return ERROR;
-    }
-    fclose(fp);
-    return OK;
-}
+    Linklist head;
+    struct HeadNodePointer *next;
+} HeadNodePointer, *HeadNodeList;
 
-//filewrite
-Status Loaddata(FILE *fp, SqList *L)
+//函数声明
+status IntiaList(Linklist *L, HeadNodeList Head_L);
+status DestroyList(Linklist *L, HeadNodeList Head_L);
+status ClearList(Linklist L);
+status ListEmpty(Linklist L);
+status ListLength(Linklist L);
+status GetElem(Linklist L, int i, ElemType *e);
+status LocateElem(Linklist L, ElemType e, status (*compare)(Node *, ElemType));
+status PriorElem(Linklist L, ElemType cur, ElemType *pre_e);
+status NextElem(Linklist L, ElemType cur, ElemType *next_e);
+status ListInsert(Linklist L, int i, ElemType e);
+status ListDelete(Linklist L, int i, ElemType *e);
+status ListTraverse(Linklist L, status (*visit)(Node *));
+status CreatList(Linklist L);
+status SaveList(Linklist L);
+status LoadList(Linklist *L, HeadNodeList Head_L);
+status CreatAnotherList(Linklist *L, HeadNodeList Head_L);
+status ChooseList(Linklist *L, HeadNodeList Head_L);
+
+status visit(Node *p)
 {
-
-    if ('@' != fgetc(fp))
-    {
-        printf("文件缺失！\n");
-        return 0;
-    }
-    else
-    {
-        switch (1)
-        {
-        case OK:
-            printf("顺序表已初始化\n");
-            break;
-        case ERROR:
-            printf("顺序表初始化失败\n");
-            return ERROR;
-        }
-    }
-    fscanf(fp, "%d", &(L->listsize));
-    fgetc(fp);
-    fscanf(fp, "%d", &(L->length));
-    fgetc(fp);
-
-    fread(L->elem, sizeof(Elemtype), L->listsize, fp);
-
-    printf("文件已读取完毕\n");
-    return OK;
-}
-
-//功能实现
-status InitList(SqList &L)
-// 线性表L不存在，构造一个空的线性表，返回OK，否则返回INFEASIBLE。
-{
-    if (L.elem == NULL)
-    {
-        L.elem = (ElemType *)malloc(sizeof(ElemType) * LIST_INIT_SIZE);
-        if (!L.elem)
-            return INFEASIBLE;
-
-        L.length = 0;
-        L.listsize = LIST_INIT_SIZE;
+    printf("%d ", p->data);
+    if (p->next != NULL)
         return OK;
-    }
     else
-    {
-        return INFEASIBLE;
-    }
+        return INFEASTABLE;
 }
 
-status DestroyList(SqList &L)
-// 如果线性表L存在，销毁线性表L，释放数据元素的空间，返回OK，否则返回INFEASIBLE。
+status compare(Node *p, ElemType e)
 {
-    if (L.elem)
-    {
-        L.length = 0;
-        L.listsize = LIST_INIT_SIZE;
-        //free(L.elem);
-        L.elem = NULL;
+    if (p->data != e)
+        return FALSE; //若该节点数据元素不等于e，返回FALSE
+    else
         return OK;
-    }
-    else
-        return INFEASIBLE;
 }
 
-status ClearList(SqList &L)
-// 如果线性表L存在，删除线性表L中的所有元素，返回OK，否则返回INFEASIBLE。
+int main(void)
 {
-    if (!L.elem)
-        return INFEASIBLE;
-    else
+    ElemType e;
+    int i = 0, op = 1, condition = 0; //op=1：循环入口；condition接收返回的获取状态
+
+    Linklist L = NULL; //L:链表名、链表头指针
+
+    HeadNodeList Head_L = NULL;                             //Head_L:多线性表表头指针构成的链表
+    Head_L = (HeadNodeList)malloc(sizeof(HeadNodePointer)); //为表头节点分配内存空间
+    Head_L->head = NULL;                                    //表头节点数据域置空
+    Head_L->next = NULL;                                    //表头节点指针域置空
+
+    while (op) //case 0:op=0（循环出口）
     {
-        L.length = 0;
-        L.listsize = LIST_INIT_SIZE;
-        free(L.elem);
-        return OK;
-    }
-}
-
-status ListEmpty(SqList L)
-// 如果线性表L存在，判断线性表L是否为空，空就返回TRUE，否则返回FALSE；如果线性表L不存在，返回INFEASIBLE。
-{
-    if (!L.elem)
-        return INFEASIBLE;
-    else
-    {
-        if (!L.length)
-            return TRUE;
-        else
-            return FALSE;
-    }
-}
-
-status ListLength(SqList L)
-// 如果线性表L存在，返回线性表L的长度，否则返回INFEASIBLE。
-{
-    if (!L.elem)
-        return INFEASIBLE;
-    else
-        return L.length;
-}
-
-status GetElem(SqList L, int i, ElemType &e)
-// 如果线性表L存在，获取线性表L的第i个元素，保存在e中，返回OK；如果i不合法，返回ERROR；如果线性表L不存在，返回INFEASIBLE。
-{
-    if (!L.elem)
-        return INFEASIBLE;
-    else
-    {
-        if (i - 1 < 0 || i - 1 > L.length - 1)
-            return ERROR;
-        else
-        {
-            e = *(L.elem + i - 1);
-            return OK;
-        }
-    }
-}
-
-status LocateElem(SqList L, ElemType e)
-// 如果线性表L存在，查找元素e在线性表L中的位置序号并返回OK；如果e不存在，返回ERROR；当线性表L不存在时，返回INFEASIBLE。
-{
-    if (!L.elem)
-        return INFEASIBLE;
-    else
-    {
-        for (int i = 0; i < L.length; i++)
-        {
-            if (*(L.elem + i) == e)
-                return i + 1;
-        }
-        return ERROR;
-    }
-}
-
-status PriorElem(SqList L, ElemType e, ElemType &pre)
-// 如果线性表L存在，获取线性表L中元素e的前驱，保存在pre中，返回OK；如果没有前驱，返回ERROR；如果线性表L不存在，返回INFEASIBLE。
-{
-    if (!L.elem)
-        return INFEASIBLE;
-    else
-    {
-        for (int i = 0; i < L.length - 1; i++)
-        {
-            if (*(L.elem + i) == e)
-            {
-                if (i != 0)
-                {
-                    pre = *(L.elem + i - 1);
-                    return OK;
-                }
-                else
-                    return ERROR;
-            }
-        }
-        return ERROR;
-    }
-}
-
-status NextElem(SqList L, ElemType e, ElemType &next)
-// 如果线性表L存在，获取线性表L元素e的后继，保存在next中，返回OK；如果没有后继，返回ERROR；如果线性表L不存在，返回INFEASIBLE。
-{
-    if (!L.elem)
-        return INFEASIBLE;
-    else
-    {
-        for (int i = 0; i < L.length; i++)
-        {
-            if (*(L.elem + i) == e)
-            {
-                if (i == L.length - 1)
-                    return ERROR;
-                else
-                {
-                    next = *(L.elem + i + 1);
-                    return OK;
-                }
-            }
-        }
-        return ERROR;
-    }
-}
-
-status ListInsert(SqList &L, int i, ElemType e)
-// 如果线性表L存在，将元素e插入到线性表L的第i个元素之前，返回OK；当插入位置不正确时，返回ERROR；如果线性表L不存在，返回INFEASIBLE。
-{
-    /********** Begin *********/
-    if (!L.elem)
-        return INFEASIBLE;
-    else
-    {
-        if (L.length == 0)
-        {
-            *L.elem = e;
-            L.length += 1;
-            return OK;
-        }
-        else if (i < 1 || i > L.length + 1)
-            return ERROR;
-        else
-        {
-            L.elem = (ElemType *)realloc(L.elem, sizeof(ElemType) * 100);
-
-            if (i == L.length + 1)
-            {
-                L.length += 1;
-                *(L.elem + i - 1) = e;
-                return OK;
-            }
-            else
-            {
-                for (int j = L.length - 1; j > i - 2; j--)
-                {
-                    *(L.elem + j + 1) = *(L.elem + j);
-                }
-                *(L.elem + i - 1) = e;
-                L.length += 1;
-                return OK;
-            }
-        }
-    }
-}
-
-status ListDelete(SqList &L, int i, ElemType &e)
-// 如果线性表L存在，删除线性表L的第i个元素，并保存在e中，返回OK；当删除位置不正确时，返回ERROR；如果线性表L不存在，返回INFEASIBLE。
-{
-    if (!L.elem)
-        return INFEASIBLE;
-    else
-    {
-        if (i < 1 || i > L.length)
-            return ERROR;
-        else
-        {
-            e = L.elem[i - 1];
-            for (int j = i - 1; j + 1 < L.length; j++)
-            {
-                L.elem[j] = L.elem[j + 1];
-            }
-            L.length -= 1;
-            return OK;
-        }
-    }
-}
-
-status ListTraverse(SqList L)
-// 如果线性表L存在，依次显示线性表中的元素，每个元素间空一格，返回OK；如果线性表L不存在，返回INFEASIBLE。
-{
-    if (!L.elem)
-        return INFEASIBLE;
-    else
-    {
-        if (L.length)
-        {
-            for (int i = 0; i < L.length - 1; i++)
-            {
-
-                printf("%d ", L.elem[i]);
-            }
-            printf("%d", L.elem[L.length - 1]);
-        }
-        return OK;
-    }
-}
-
-//依次向文件中覆盖地写入
-Status Savedata(FILE *fp, SqList *L)
-{
-    if (L->length == 0)
-    {
-        printf("信息不存在！\n");
-        fputc('#', fp);
-        return ERROR;
-    }
-    fputc('@', fp);
-    fprintf(fp, "%d", L->listsize);
-    fputc('@', fp);
-    fprintf(fp, "%d", L->length);
-    fputc('@', fp);
-    fwrite(L->elem, sizeof(Elemtype), L->listsize, fp);
-    printf("数据存储成功。\n");
-    printf("%s", FILE_SAVE_PATH);
-    return OK;
-}
-//退出函数
-Status EXit(SqList *L1, SqList *L2)
-{
-    FILE *fp = fopen(FILE_SAVE_PATH, "w+");
-    if (fp == NULL)
-    {
-        printf("文件建立失败！\n"); //建立失败
-    }
-    printf("当前正在存储表一的数据。\n");
-    if (Savedata(fp, L1) == ERROR)
-    {
-        printf("数据存储失败！\n");
-        return ERROR;
-    }
-    printf("当前正在存储表二的数据。\n");
-    if (Savedata(fp, L2) == ERROR)
-    {
-        printf("数据存储失败！\n");
-        return ERROR;
-    }
-    fclose(fp);
-    getchar();
-    return OK;
-}
-//menu
-
-//menu 菜单：实现用户界面
-void menu_1(void)
-{
-    SqList *L1;
-    SqList li, ly;
-    SqList *L2;
-    L1 = &li;
-    L2 = &ly;
-    //InitList(*L2);
-    int x;
-    int op = 1; //在函数内实现变量控制和输出控制
-    while (op != 0)
-    {
-        printf("\n\n");
-        printf("                    主菜单                        \n");
-        printf("-------------------------------------------------\n");
-        printf("          1. 新建表文件           2. 打开已有文件\n");
-        printf("          3. 退出系统              \n");
-        printf("-------------------------------------------------\n");
-        printf("    请选择你的操作[1~3]:");
-        scanf("%d", &op);
-        switch (op)
-        {
-        case 1:
-            printf("请输入您要操作的表【1-2】：");
-            scanf("%d", &x);
-            switch (x)
-            {
-            case 1:
-                menu_2(L1);
-                printf("是否还要继续操作另一个表？（1/-1）:\n");
-                scanf("%d", &op);
-                if (op)
-                {
-                    menu_2(L2);
-                    EXit(L1, L2);
-                    printf("\n是否还要继续操作？（1/-1）:");
-                    scanf("%d", &op);
-
-                    if (op == 1)
-                    {
-                        printf("请输入您要操作的表【1-2】:");
-                        scanf("%d", &x);
-                        if (x == 1)
-                            menu_2(L1);
-                        if (x == 2)
-                            menu_2(L2);
-                        else
-                            printf("错误输入！\n");
-                        break;
-                    }
-                    if (op == -1)
-                        break;
-
-                    break;
-                }
-                else if (op == -1)
-                {
-                    EXit(L1, NULL);
-                    break;
-                }
-
-            case 2:
-                menu_2(L2);
-                printf("是否还要继续操作另一个表？（1/-1）\n");
-                scanf("%d", &op);
-                if (op)
-                {
-                    menu_2(L1);
-                    EXit(L1, L2);
-                    printf("是否还要继续操作？（1/-1）\n");
-                    scanf("%d", &op);
-
-                    {
-                        if (op == 1)
-                            printf("请输入您要操作的表【1-2】：");
-                        scanf("%d", &x);
-                        if (x == 1)
-                            menu_2(L1);
-                        if (x == 2)
-                            menu_2(L2);
-                        else
-                            printf("错误输入！\n");
-                        break;
-                        if (op == -1)
-                            break;
-                    }
-                    break;
-                }
-                else if (op == -1)
-                {
-                    EXit(L2, NULL);
-                    break;
-                }
-            default:
-                printf("错误输入！\n");
-                break;
-            }
-            break;
-        case 2:
-            x = filere(L1, L2);
-            if (x)
-            {
-                printf("请输入您要操作的表【1-2】：");
-                scanf("%d", &x);
-                if (x == 1)
-                    menu_2(L1);
-                if (x == 2)
-                    menu_2(L2);
-                else
-                    printf("错误输入！\n");
-                printf("是否还要继续操作？（1/0）\n");
-                scanf("%d", &op);
-                while (op)
-                {
-                    switch (op)
-                    {
-                    case 1:
-                        printf("请输入您要操作的表【1-2】：");
-                        scanf("%d", &x);
-                        if (x == 1)
-                            menu_2(L1);
-                        if (x == 2)
-                            menu_2(L2);
-                        else
-                            printf("错误输入！\n");
-                        printf("是否还要继续操作？（1/0）\n");
-                        scanf("%d", &op);
-                    case 2:
-                        op = 0;
-                        break;
-                    default:
-                        printf("错误输入！\n");
-                        break;
-                    }
-                }
-                x = 0;
-                menu_1();
-            }
-            //这里从文件中逐个读取数据元素恢复顺序表，对于不同的物理结构，可通过读//取的数据元素恢复内存中的物理结构。
-            break;
-
-        case 3:
-            EXit(L1, L2);
-            exit(0);
-            break;
-        } //end of switch
-    }     //end of while
-}
-void menu_2(SqList *L)
-{
-
-    int op = 1, j = 0, i, e, pre, next;
-    char name;
-    while (op)
-    {
+        //显示菜单界面
         system("cls");
         printf("\n\n");
-        printf("      Menu for Linear Table On Sequence Structure \n");
-        printf("-------------------------------------------------\n");
-        printf("          1. InitList       7. LocateElem\n");
-        printf("          2. DestroyList    8. PriorElem\n");
-        printf("          3. ClearList      9. NextElem \n");
-        printf("          4. ListEmpty      10. ListInsert\n");
-        printf("          5. ListLength     11. ListDelete\n");
-        printf("          6. GetElem        12. ListTrabverse\n");
-        printf("           0. Exit\n");
-        printf("-------------------------------------------------\n");
-        printf("    请选择你的操作[0~12]:");
-        scanf("%d", &op);
+        printf("   Menu for Linear Table On Linked Storage Structure   \n");
+        printf("--------------------------------------------------------------\n");
+        printf("    	  0. Exit\n");
+        printf("    	  1. IntiaList       2. DestroyList\n");
+        printf("    	  3. ClearList       4. ListEmpty\n");
+        printf("    	  5. ListLength      6. GetElem\n");
+        printf("    	  7. LocateElem      8. PriorElem\n");
+        printf("    	  9. NextElem       10. ListInsert\n");
+        printf("    	 11. ListDelete     12. ListTrabverse\n");
+        printf("    	 13. CreatList      14. SaveList\n");
+        printf("    	 15. LoadList       16. CreateAnotherList\n");
+        printf("    	 17. ChooseList\n");
+        printf("--------------------------------------------------------------\n");
+        printf("    请选择你的操作[0~17]:");
+        if (scanf("%d", &op) != 1)
+        {
+            fflush(stdin);
+            op = 18;
+        } //若输入数字之外的字符，清空标准输入流里的数据，并将op置为default
         switch (op)
         {
         case 1:
-            printf("\n----IntiList功能待实现！\n");
-            if (InitList(*L) == OK)
+            if (IntiaList(&L, Head_L) == OK)
                 printf("线性表创建成功！\n");
             else
                 printf("线性表创建失败！\n");
-            getchar();
-            getchar();
+            system("pause");
             break;
+
         case 2:
-            printf("\n----DestroyList功能待实现！\n");
-            if (DestroyList(*L) == OK)
-                printf("线性表销毁成功！\n");
+            if (DestroyList(&L, Head_L) == OK)
+                printf("销毁线性表成功！\n");
             else
-                printf("线性表销毁失败！\n");
-            getchar();
-            getchar();
+                printf("线性表不存在，操作非法！\n销毁线性表失败！\n");
+            system("pause");
             break;
+
         case 3:
-            printf("\n----ClearList功能待实现！\n");
-            if (ClearList(*L) == OK)
-                printf("线性表清空成功！\n");
-            else
-                printf("线性表清空失败！\n");
-            getchar();
-            getchar();
+            if (ClearList(L) == OK)
+                printf("清空线性表成功！\n");
+            system("pause");
             break;
+
         case 4:
-            printf("\n----ListEmpty功能待实现！\n");
-            if (ListEmpty(*L) == TRUE)
-                printf("线性表长度为0！\n");
-            else if (ListEmpty(*L) == FALSE)
-                printf("线性表长度不为0！\n");
-            else
-                printf("线性表不存在");
-            getchar();
-            getchar();
+            condition = ListEmpty(L);
+            if (condition == TRUE)
+                printf("该线性表是空表！\n");
+            else if (condition == FALSE)
+                printf("该线性表不是空表！\n");
+            system("pause");
             break;
+
         case 5:
-            printf("\n----ListLength功能待实现！\n");
-            j = ListLength(*L);
-            if (j != INFEASIBLE)
-                printf("线性表长度为%d\n", j);
-            else
-                printf("线性表不存在\n");
-            getchar();
-            getchar();
+            condition = ListLength(L);
+            if (condition != -1)
+                printf("线性表的长度是: %d \n", condition);
+            system("pause");
             break;
+
         case 6:
-            printf("\n----输入你想获取的元素的位置，请填正整数，线性表的总长度为%d\n", (*L).length);
+            printf("输入i，获取线性表中第i（1≤i≤%d）个数据元素的值：", ListLength(L));
             scanf("%d", &i);
-            printf("\n----GetElem功能待实现！\n");
-            j = GetElem(*L, i, e);
-            if (j == OK)
-                printf("查找成功！线性表第%d个元素值为%d\n", i, e);
-            else if (j == ERROR)
-                printf("%d小于1或者%d超过线性表长度，输入不合法！\n", i, i);
-            else
-                printf("线性表不存在\n");
-            getchar();
-            getchar();
+            condition = GetElem(L, i, &e);
+            if (condition == ERROR)
+                printf("操作失败，输入的i必须满足范围 1≤i≤%d ！\n", ListLength(L));
+            else if (condition == OK)
+                printf("查找成功！线性表中第 %d 个数据元素的值是 %d ！\n", i, e);
+            system("pause");
             break;
+
         case 7:
-            printf("\n----请输入想查找的元素值\n");
+            printf("输入e，获取数据元素e在线性表中的位置：");
             scanf("%d", &e);
-            printf("\n----LocateElem功能待实现！\n");
-            j = LocateElem(*L, e);
-            if (j == INFEASIBLE)
-                printf("线性表不存在\n");
-            else if (j == ERROR)
-                printf("线性表中无值为%d的元素，查找失败\n", e);
-            else
-                printf("查找成功！线性表中值为%d的元素是第%d个\n", e, j);
-            getchar();
-            getchar();
+            condition = LocateElem(L, e, compare);
+            if (condition == 0)
+                printf("获取失败，线性表中不存在数据元素 %d ！\n", e);
+            else if (condition >= 1)
+                printf("获取成功，数据元素 %d 在线性表中的位置为 %d ！\n", e, condition);
+            system("pause");
             break;
+
         case 8:
-            printf("\n----请输入想获取前驱的元素值\n");
+            printf("输入e，获取数据元素e在线性表中的前驱数据元素：");
             scanf("%d", &e);
-            printf("\n----PriorElem功能待实现！\n");
-            j = PriorElem(*L, e, pre);
-            if (j == INFEASIBLE)
-                printf("线性表不存在\n");
-            else if (j == ERROR)
-                printf("没有找到指定元素%d的前驱，查找失败\n", e);
-            else
-                printf("查找成功！指定元素%d的前驱为%d", e, pre);
-            getchar();
-            getchar();
+            condition = PriorElem(L, e, &i);
+            if (condition == ERROR)
+                printf("操作失败，数据元素 %d 的前驱无定义\n", e);
+            else if (condition == OK)
+                printf("操作成功，数据元素 %d 的前驱数据元素为 %d ！\n", e, i);
+            system("pause");
             break;
+
         case 9:
-            printf("\n----请输入想获取后继的元素值\n");
+            printf("输入e，获取数据元素e在线性表中的后继数据元素：");
             scanf("%d", &e);
-            printf("\n----NextElem功能待实现！\n");
-            j = NextElem(*L, e, next);
-            if (j == INFEASIBLE)
-                printf("线性表不存在\n");
-            else if (j == ERROR)
-                printf("没有找到指定元素%d的后继，查找失败\n", e);
-            else
-                printf("查找成功！指定元素%d的后继为%d\n", e, next);
-            getchar();
-            getchar();
+            condition = NextElem(L, e, &i);
+            if (condition == ERROR)
+                printf("操作失败，数据元素 %d 的后继无定义\n", e);
+            else if (condition == OK)
+                printf("操作成功，数据元素 %d 的后继数据元素为 %d ！\n", e, i);
+            system("pause");
             break;
+
         case 10:
-            printf("\n----请输入在第几个元素前插入新的元素值");
-            printf("\n元素位置:");
-            scanf("%d", &i);
-            printf("\n元素值：");
-            scanf("%d", &e);
-            printf("\n----ListInsert功能待实现！\n");
-            j = ListInsert(*L, i, e);
-            if (j == INFEASIBLE)
-                printf("线性表不存在");
-            else if (j == ERROR)
-                printf("插入失败");
-            else
-                printf("插入成功！");
-            getchar();
-            getchar();
+            printf("分别输入i、e，在线性表的第i（1≤i≤%d）个位置之前插入新的数据元素e：", ListLength(L) + 1);
+            scanf("%d%d", &i, &e);
+            condition = ListInsert(L, i, e);
+            if (condition == ERROR)
+                printf("插入新的数据元素失败，输入的i必须满足范围 1≤i≤%d ！\n", ListLength(L) + 1);
+            else if (condition == OK)
+                printf("在线性表的第 %d 个位置插入新的数据元素 %d 成功！\n", i, e);
+            system("pause");
             break;
+
         case 11:
-            printf("\n----请输入待删除元素的元素位置");
+            printf("输入i，删除线性表第i（1≤i≤%d）个位置的数据元素：", ListLength(L));
             scanf("%d", &i);
-            printf("\n----ListDelete功能待实现！\n");
-            j = ListDelete(*L, i, e);
-            if (j == INFEASIBLE)
-                printf("线性表不存在");
-            else if (j == ERROR)
-                printf("删除失败");
-            else
-                printf("删除成功！删除元素的值为%d", e);
-            getchar();
-            getchar();
+            condition = ListDelete(L, i, &e);
+            if (condition == ERROR)
+                printf("删除线性表第 %d 个位置的数据元素失败，输入的 i 必须满足范围 1≤i≤%d ！\n", i, ListLength(L));
+            else if (condition == OK)
+                printf("删除线性表第 %d 个位置的数据元素 %d 成功！\n", i, e);
+            system("pause");
             break;
+
         case 12:
-            printf("\n----ListTrabverse功能待实现！\n");
-            if (ListTraverse(*L) == INFEASIBLE)
+            if (ListTraverse(L, visit) == ERROR)
                 printf("线性表是空表！\n");
-            getchar();
-            getchar();
+            system("pause");
             break;
+
+        case 13:
+            condition = CreatList(L);
+            if (condition == OK)
+            {
+                printf("创建线性表成功！\n");
+                ListTraverse(L, visit);
+            }
+            else
+                printf("创建线性表失败！\n");
+            system("pause");
+            break;
+
+        case 14:
+            condition = SaveList(L);
+            if (condition == OK)
+                printf("线性表保存成功！\n");
+            else if (condition == ERROR)
+                printf("线性表保存失败！\n");
+            system("pause");
+            break;
+
+        case 15:
+            condition = LoadList(&L, Head_L);
+            if (condition == OK)
+            {
+                printf("读取（加载）线性表成功！\n");
+                ListTraverse(L, visit);
+            }
+            else
+                printf("读取（加载）线性表失败！\n");
+            system("pause");
+            break;
+
+        case 16:
+            condition = CreatAnotherList(&L, Head_L);
+            if (condition == OK)
+                printf("创建线性表成功！\n");
+            else
+                printf("创建线性表失败！\n");
+            system("pause");
+            break;
+
+        case 17:
+            condition = ChooseList(&L, Head_L);
+            if (condition == OK)
+                printf("选择线性表成功！\n");
+            else
+                printf("选择线性表失败！\n");
+            system("pause");
+            break;
+
         case 0:
             break;
+
+        default:
+            printf("输入无效！菜单功能选择失败！\n");
+            system("pause");
+            break;
+
         } //end of switch
-    }     //end of while
+
+    } //end of while
+
+    printf("欢迎下次再使用本系统！\n");
+
+    return 0;
+} //end of main()
+
+//初始化链表：初始条件是线性表L已存在；操作结果是构造一个带有表头节点的空链表。
+status IntiaList(Linklist *L, HeadNodeList Head_L)
+{
+    HeadNodePointer *p = Head_L;
+    if ((*L) != NULL)
+    {
+        printf("不能多次初始化一个线性表！\n");
+        return ERROR;
+    }
+    *L = (Linklist)malloc(sizeof(Node)); //L指针指向调用malloc函数为表头节点动态分配的内存空间地址
+    if (!*L)
+        exit(OVERFLOW); //if(*L==NULL) exit(OVERFLOW);
+    (*L)->data = 0;     //初始化链表长度：头指针的数据域用于存储链表长度
+    (*L)->next = NULL;  //头指针的指针域置空：头指针的指针域用于存储链表首元节点的地址
+    while (p->next != NULL)
+        p = p->next;                                              //遍历至表尾
+    p->next = (HeadNodePointer *)malloc(sizeof(HeadNodePointer)); //为节点分配空间
+    p->next->head = (*L);                                         //数据域录入线性表表头指针
+    p->next->next = NULL;                                         //指针域置空
+    return OK;
+}
+
+//销毁链表：初始条件是线性表L已存在；操作结果是销毁线性表L。
+status DestroyList(Linklist *L, HeadNodeList Head_L)
+{
+    Node *q = (*L), *pre_q = NULL; //q（从表头节点开始）指向当前遍历到的节点，pre_q指向当前节点q的前一个结点
+    HeadNodePointer *p = Head_L, *temp = NULL;
+    if (*L == NULL)
+        return ERROR; //ERROR：链表不存在，操作非法
+    while (p->next->head != (*L))
+        p = p->next;      //遍历：查找线性表表头指针
+    temp = p->next;       //记录下线性表表头指针所在的节点
+    p->next = temp->next; //将线性表表头指针所在的节点从链表中删除
+    free(temp);           //释放线性表表头指针所在的节点
+    while (q != NULL)     //遍历，依次释放除表头节点之外的所有节点所占的内存空间
+    {
+        pre_q = q;   //pre_q记录下当前节点
+        q = q->next; //q指向当前节点的下一个节点
+        free(pre_q); //释放当前节点
+    }
+    *L = NULL; //清空链表（头指针）
+    return OK;
+}
+
+//清空表：初始条件是线性表L已存在；操作结果是将L重置为空表。
+status ClearList(Linklist L)
+{
+    Node *q = NULL, *pre_q = NULL; //pre_q指向当前节点q的前一个结点
+    if (L == NULL)
+    {
+        printf("线性表不存在，操作非法！\n");
+        return ERROR;
+    }            //ERROR：链表不存在，操作非法
+    q = L->next; //q（从首元节点或NULL开始）指向当前遍历到的节点
+    if (q == NULL)
+    {
+        printf("线性表是空表，无需清空!\n");
+        return ERROR;
+    }                 //ERROR：链表是空表，无需清空
+    while (q != NULL) //遍历，依次释放除表头节点之外的所有节点所占的内存空间
+    {
+        pre_q = q;   //pre_q记录下当前节点
+        q = q->next; //q指向当前节点的下一个节点
+        free(pre_q); //释放当前节点
+    }
+    L->data = 0;    //头指针的数据域置零
+    L->next = NULL; //头指针的指针域置空
+    return OK;
+}
+
+//判定空表：初始条件是线性表L已存在；操作结果是若L为空表则返回TRUE,否则返回FALSE。
+status ListEmpty(Linklist L)
+{
+    if (L == NULL)
+    {
+        printf("线性表不存在，操作非法！\n");
+        return -1;
+    } //ERROR(-1)：链表不存在，操作非法
+    else
+        return (L->next == NULL) ? TRUE : FALSE; //return (!L->data)?TRUE:FALSE;
+}
+
+//求表长：初始条件是线性表已存在；操作结果是返回L中数据元素的个数。
+int ListLength(Linklist L)
+{
+    if (L == NULL)
+    {
+        printf("线性表不存在，操作非法！\n");
+        return -1;
+    } //ERROR(-1)：链表不存在，操作非法
+    else
+        return L->data; //头指针的数据域用于存储链表长度
+}
+
+//获取元素：初始条件是线性表已存在，1≤i≤ListLength(L)；操作结果是用e返回L中第i个数据元素的值。
+status GetElem(Linklist L, int i, ElemType *e)
+{
+    int num = 1;
+    Node *p = NULL;
+    if (L == NULL)
+    {
+        printf("线性表不存在，操作非法！\n");
+        return -1;
+    }            //ERROR(-1)：链表不存在，操作非法
+    p = L->next; //p指向首元节点或NULL
+    if (i < 1 || i > L->data)
+        return ERROR; //ERROR：不满足查找条件
+    while (num < i)   //非随机存取：遍历查找，直至找到第i个数据元素
+    {
+        p = p->next; //p指向下一个数据元素
+        num++;
+    }
+    *e = p->data; //取出第i个数据元素的值
+    return OK;
+}
+
+//查找元素：初始条件是线性表已存在
+//操作结果是返回L中第1个与e满足关系compare()关系的数据元素的位序；若这样的数据元素不存在，则返回值为0。
+status LocateElem(Linklist L, ElemType e, status (*compare)(Node *, ElemType))
+{
+    int num = 1, find = FALSE; //num用于记录数据元素e的位序,find用于记录是否查询到该数据元素
+    Node *p = NULL;
+    if (L == NULL)
+    {
+        printf("线性表不存在，操作非法！\n");
+        return -1;
+    }            //ERROR(-1)：链表不存在，操作非法
+    p = L->next; //p指向表头节点的next指针指向的节点（首元节点或者NULL）
+    while (p)    //非随机存取：遍历查找，直至找到值为的e的数据元素
+    {
+        if (compare(p, e) == TRUE)
+        {
+            find = TRUE;
+            break;
+        }
+        else
+        {
+            p = p->next;
+            num++;
+        }
+    }
+    return (find == TRUE) ? num : 0; //若查找到尽头都找不到值为的e的数据元素，返回0
+}
+
+//获得前驱：初始条件是线性表L已存在
+//操作结果是若cur_e是L的数据元素，且不是第一个，则用pre_e返回它的前驱，否则操作失败，pre_e无定义。
+status PriorElem(Linklist L, ElemType cur, ElemType *pre_e)
+{
+    Node *pre_q = NULL, *q = NULL; //pre_q指向当前节点q的前一个结点
+    if (L == NULL)
+    {
+        printf("线性表不存在，操作非法！\n");
+        return -1;
+    }            //ERROR(-1)：线性表不存在，操作非法
+    q = L->next; //q（从首元节点或NULL开始）指向当前遍历到的节点
+    while (q && q->data != cur)
+    {
+        pre_q = q;
+        q = q->next;
+    } //遍历查找值为的cur的数据元素
+    //若找到了值为的cur的数据元素，且该数据元素的前驱有定义，取出其前驱的值
+    if (q != NULL && pre_q != NULL)
+    {
+        *pre_e = pre_q->data;
+        return OK;
+    }
+    else
+        return ERROR; //ERROR：不存在值为的cur的数据元素，或该数据元素的前驱没有定义
+}
+
+//获得后继：初始条件是线性表L已存在
+//操作结果是若cur_e是L的数据元素，且不是最后一个，则用next_e返回它的后继，否则操作失败，next_e无定义。
+status NextElem(Linklist L, ElemType cur, ElemType *next_e)
+{
+    Node *p = NULL;
+    if (L == NULL)
+    {
+        printf("线性表不存在，操作非法！\n");
+        return -1;
+    }            //ERROR(-1)：链表不存在，操作非法
+    p = L->next; //p（从首元节点或NULL开始）指向当前遍历到的节点
+    while (p && p->data != cur)
+        p = p->next; //遍历查找
+    //若找到了值为的cur的数据元素，且该数据元素的后继有定义，取出其后继的值
+    if (p != NULL && p->next != NULL)
+    {
+        *next_e = p->next->data;
+        return OK;
+    }
+    else
+        return ERROR; //ERROR：不存在值为的cur的数据元素，或该数据元素的后继没有定义
+}
+
+//插入元素：初始条件是线性表L已存在，1≤i≤ListLength(L)+1；操作结果是在L的第i个位置之前插入新的数据元素e。
+status ListInsert(Linklist L, int i, ElemType e)
+{
+    int num = 1;            //num用于记录位置
+    Node *p = L, *q = NULL; //p指向表头节点，q为新生成的节点
+    if (L == NULL)
+    {
+        printf("线性表不存在，操作非法！\n");
+        return -1;
+    } //ERROR(-1)：链表不存在，操作非法
+    if (i < 1 || i > L->data + 1)
+        return ERROR; //ERROR：不满足插入条件
+    while (num < i)
+    {
+        p = p->next;
+        num++;
+    }                                 //非随机存取：遍历，找到第i个位置的前一个节点
+    q = (Node *)malloc(sizeof(Node)); //为新节点分配内存空间
+    if (q == NULL)
+        exit(OVERFLOW);
+    q->data = e;       //录入数据元素数据
+    q->next = p->next; //插入操作
+    p->next = q;
+    L->data++; //数据元素的个数加一
+    return OK;
+}
+
+//删除元素：初始条件是线性表L已存在且非空，1≤i≤ListLength(L)；操作结果：删除L的第i个数据元素，用e返回其值。
+status ListDelete(Linklist L, int i, ElemType *e)
+{
+    int num = 0;            //num用于记录位置
+    Node *p = L, *q = NULL; //将p指向表头节点，q为待删除的节点
+    if (L == NULL || L->next == NULL)
+    {
+        printf("线性表不存在或线性表为空，操作非法！\n");
+        return -1;
+    }
+    if (i < 1 || i > L->data || L->data == 0)
+        return ERROR; //ERROR：不满足删除条件
+    while (num < i - 1)
+    {
+        p = p->next;
+        num++;
+    }            //非随机存取：遍历，找到第i个节点的前一个节点
+    q = p->next; //删除操作
+    p->next = q->next;
+    *e = q->data; //取出待删除的数据元素的值
+    free(q);      //释放节点所占的内存空间
+    L->data--;    //数据元素的个数减一
+    return OK;
+}
+
+//遍历表：初始条件是线性表L已存在且非空；操作结果是依次对L的每个数据元素调用函数visit()。
+status ListTraverse(Linklist L, status(visit)(Node *))
+{
+    Node *p = NULL;
+    if (L == NULL)
+    {
+        printf("线性表不存在，操作非法！\n");
+        return -1;
+    } //ERROR(-1)：链表不存在，操作非法
+    if (L->next == NULL)
+        return ERROR; //ERROR：链表是空表，无需遍历
+    p = L->next;      //p指向首元节点
+    while (visit(p) != INFEASTABLE)
+        p = p->next; //输出每个节点的数据元素
+    printf("\n");
+    return OK;
+}
+
+//创建链表：初始条件是线性表L存在且已被初始化；操作结果是创建一个带有表头节点，无限长度的链表。
+status CreatList(Linklist L)
+{
+    ElemType n;
+    Node *p = NULL, *pre_p = L; //p表示新生成的节点，pre_p指向其上一个节点
+    if (L == NULL)
+    {
+        printf("线性表未初始化！");
+        return ERROR;
+    } //ERROR：未初始化
+    printf("创建线性表，输入以文件尾（CTRL+Z）为结束标记的数据元素：");
+    while (scanf("%d", &n) != EOF)
+    {
+        p = (Node *)malloc(sizeof(Node)); //为节点分配空间
+        if (p == NULL)
+            exit(OVERFLOW); //OVERFLOW
+        p->data = n;        //录入数据元素数据
+        pre_p->next = p;    //延伸链表
+        pre_p = p;
+        L->data++; //数据元素个数加一
+    }
+    if (p != NULL)
+        p->next = NULL;
+    return OK;
+}
+
+//保存链表：初始条件是线性表L存在且已被初始化；操作结果是将该链表存储到输入的文件路径中去。
+status SaveList(Linklist L)
+{
+    char filename[FILENAME_LENGTH] = {0}; //filename用于存储输入的文件路径
+    FILE *fp = NULL;                      //文件指针
+    Node *p = NULL;
+    if (L == NULL)
+    {
+        printf("线性表未初始化！\n");
+        return -1;
+    } //ERROR(-1)：未初始化
+    p = L->next;
+    printf("输入文件路径(长度应在%d字符以内)，将线性表保存到该文件中：", FILENAME_LENGTH);
+    scanf("%s", filename);
+    fp = fopen(filename, "w"); //打开文件
+    if (fp == NULL)
+    {
+        printf("打开文件错误！\n");
+        return ERROR;
+    } //ERROR：打开文件错误
+    while (p)
+    {
+        fprintf(fp, "%d ", p->data);
+        p = p->next;
+    }           //写入文件
+    fclose(fp); //关闭文件
+    return OK;
+}
+
+//读取（装载）链表：初始条件是输入的路径文件中的数据是链表形式的数据
+//操作结果是将输入的路径文件中的数据装载到链表中去。
+status LoadList(Linklist *L, HeadNodeList Head_L)
+{
+    char filename[FILENAME_LENGTH]; //filename用于存储输入的文件路径
+    FILE *fp = NULL;                //文件指针
+    ElemType n;                     //n用于读取节点的数据域
+    Node *p = NULL, *pre_p = NULL;  //p表示新生成的节点，pre_p指向其上一个节点
+    printf("输入文件路径(长度应在%d字符以内)，将线性表保存到该文件中：", FILENAME_LENGTH);
+    scanf("%s", filename);
+    fp = fopen(filename, "r"); //打开文件
+    if (fp == NULL)
+    {
+        printf("打开文件错误！\n");
+        return ERROR;
+    }
+    (*L) = NULL; //清空现有头指针的指向
+    if (IntiaList(L, Head_L) == ERROR)
+        exit(OVERFLOW); //初始化线性表
+    pre_p = *L;
+    while (fscanf(fp, "%d ", &n) != EOF)
+    {
+        p = (Node *)malloc(sizeof(Node)); //为节点分配空间
+        if (p == NULL)
+            exit(OVERFLOW); //OVERFLOW
+        p->data = n;        //录入数据元素数据
+        pre_p->next = p;    //延伸链表
+        //pre_p向后移动，记录当前链表的最后一个节点，也就是即将生成的新节点的前一个结点
+        pre_p = p;
+        (*L)->data++; //数据元素个数加一
+    }
+    if (p != NULL)
+        p->next = NULL; //最后一个节点的next域赋值为NULL
+    fclose(fp);         //关闭文件
+    return OK;
+}
+
+//创建一个新的线性表：初始条件是已经存在至少一个线性表
+//操作结果是保留原有的线性表的同时，创建一个新的线性表
+status CreatAnotherList(Linklist *L, HeadNodeList Head_L)
+{
+    Linklist AnotherList = NULL;
+    if ((*L) == NULL)
+    {
+        printf("没有已创建的线性表或未选择线性表！！\n");
+        return ERROR;
+    }
+    if (IntiaList(&AnotherList, Head_L) == OK)
+    {
+        (*L) = AnotherList; //初始化头指针
+        printf("新的线性表创建成功！\n");
+    }
+    else
+    {
+        printf("线性表创建失败！\n");
+        return ERROR;
+    } //ERROR:初始化失败
+    if (CreatList(*L) == OK)
+        return OK; //创建线性表
+    else
+        return ERROR; //ERROR:创建失败
+}
+
+//选择线性表：初始条件是已经存在至少一个线性表
+status ChooseList(Linklist *L, HeadNodeList Head_L)
+{
+    int i = 1, n;
+    HeadNodePointer *p = Head_L->next;
+    if (p == NULL)
+    {
+        printf("没有可选择的线性表！\n");
+        return ERROR;
+    }                 //ERROR:没有可选择的线性表
+    while (p != NULL) //遍历线性表头指针数组
+    {
+        printf("第%d个线性表：", i);
+        if (ListTraverse(p->head, visit) == ERROR)
+            printf("\n"); //遍历输出该线性表并进行格式控制
+        p = p->next;
+        i++;
+    }
+    printf("输入n，选择第n个线性表进行操作：");
+    scanf("%d", &n);
+    if (n < 1 || n >= i)
+    {
+        printf("不存在第 %d 个线性表！\n", n);
+        return ERROR;
+    } //ERROR：输入错误，不存在该线性表
+    i = 1;
+    p = Head_L->next;
+    while (p != NULL) //遍历线性表头指针数组
+    {
+        if (i == n)
+            (*L) = p->head;
+        p = p->next;
+        i++;
+    }
+    if ((*L) == NULL)
+        return ERROR;
+    else
+        return OK;
 }

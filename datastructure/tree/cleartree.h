@@ -6,6 +6,7 @@ status ClearTree(BiTree &T)
         ClearTree(T->lchild);
         ClearTree(T->rchild);
         free(T);
+        T = NULL;
         return OK;
     }
     return OK;

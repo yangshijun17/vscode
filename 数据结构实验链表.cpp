@@ -1,7 +1,7 @@
 /* Linear Table On Sequence Structure */
 #include <stdio.h>
 #include <stdlib.h>
-#include<string.h>
+#include <string.h>
 #define TRUE 1
 #define FALSE 0
 #define OK 1
@@ -23,8 +23,8 @@ typedef struct
     struct
     {
         char name[30]; //这个线性表的名字
-        LinkList L;      //线性表
-    } elem[10];
+        LinkList L;    //线性表
+    } elem[100];
     int length; //线性表组中一共有多少线性表
 } LISTS;
 status InitList(LinkList &L);
@@ -49,23 +49,25 @@ int main()
 {
     LISTS Lists;
     Lists.length = 0;
-    int op = 1, j, e,flag=0,num;
+    int op = 1, j, e, flag = 0, num;
     while (op)
     {
         system("cls");
         printf("\n\n      Menu for Linear Table On Sequence Structure \n");
         printf("-------------------------------------------------\n");
-        printf("    	  1. InitList       10. ListInsert\n");
-        printf("    	  2. DestroyList    11. ListDelete\n");
-        printf("    	  3. ClearList       12. ListTrabverse\n");
-        printf("    	  4. ListEmpty     13. AddList\n");
-        printf("    	  5. ListLength     14. RemoveList\n");
-        printf("    	  6. GetElem       15. LocateList\n");
+        printf("          1. InitList       10. ListInsert\n");
+        printf("          2. DestroyList    11. ListDelete\n");
+        printf("          3. ClearList       12. ListTrabverse\n");
+        printf("          4. ListEmpty     13. AddList\n");
+        printf("          5. ListLength     14. RemoveList\n");
+        printf("          6. GetElem       15. LocateList\n");
         printf("          7. LocateElem      16. TrabverseList\n");
         printf("          8. PriorElem    17. SaveList\n");
         printf("          9. NextElem      18. LoadList\n");
         printf("                   0. Exit\n");
         printf("-------------------------------------------------\n");
+        /*下面使用了大量的if-else分支结构，主要是对错误的输入进行各种情况的处理判断
+        同时使用while循环，可以重复输入*/
         if (Lists.length == 0)
         {
             printf("现在还没有线性表哦，赶快使用功能13创建一个吧！\n");
@@ -165,7 +167,7 @@ int main()
                 }
             }
         }
-        switch (op)
+        switch (op) /*下面是对于各种情况的分支*/
         {
         case 1:
         {
@@ -237,7 +239,7 @@ int main()
                 printf("输入的位置序号有误!\n");
             }
             else
-                printf("该元素为%d",e);
+                printf("该元素为%d", e);
             break;
         }
         case 7:
@@ -320,13 +322,13 @@ int main()
             int j = ListTraverse(Lists.elem[num - 1].L);
             if (j == INFEASIBLE)
                 printf("该表不存在!\n");
-            else if(j==ERROR)
+            else if (j == ERROR)
                 printf("该表为空!\n");
             break;
         }
         case 13:
         {
-            
+
             printf("正在实现AddList功能\n");
             printf("先给这个线性表起个名字吧:");
             char nam[100];
@@ -466,7 +468,7 @@ status ClearList(LinkList &L)
     {
         LinkList p, q;
         p = L->next;
-        while(p!=NULL)
+        while (p != NULL)
         {
             q = p->next;
             free(p);
@@ -508,7 +510,6 @@ status ListLength(LinkList L)
         return INFEASIBLE;
     }
     LinkList p;
-
     p = L->next;
     int i = 0;
     while (p)
@@ -621,7 +622,8 @@ status NextElem(LinkList L, ElemType e, ElemType &next)
     }
     while (p->next)
     {
-        if (p->data == e){
+        if (p->data == e)
+        {
             next = p->next->data;
             return OK;
         }
@@ -697,7 +699,7 @@ status ListTraverse(LinkList L)
         return INFEASIBLE;
     }
     LinkList q = L->next;
-    if(q==NULL)
+    if (q == NULL)
         return ERROR;
     while (q)
     {
@@ -712,7 +714,7 @@ status SaveList(LinkList L, char FileName[])
 {
     // 请在这里补充代码，完成本关任务
     /********** Begin 1 *********/
-    if (L==NULL&&L->next == NULL)
+    if (L == NULL && L->next == NULL)
     {
         return INFEASIBLE;
     }
@@ -739,7 +741,7 @@ status LoadList(LinkList &L, char FileName[])
     // 请在这里补充代码，完成本关任务
     /********** Begin 2 *********/
 
-    if (L->next!=NULL||L==NULL)
+    if (L->next != NULL || L == NULL)
     {
         return INFEASIBLE;
     }
