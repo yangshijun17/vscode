@@ -1,4 +1,4 @@
-#include<D:\vscode_c\data structure\tree\def.h>
+#include<D:\vscode_c\datastructure\tree\def.h>
 int BiTreeDepth(BiTree T);
 void LevelTree(BiTree T, int depth);
 status LevelOrderTree(BiTree T)
