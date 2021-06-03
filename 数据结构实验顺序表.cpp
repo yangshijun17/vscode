@@ -1,6 +1,7 @@
 /* Linear Table On Sequence Structure */
 #include <stdio.h>
 #include <stdlib.h>
+#include<string.h>
 /*---------page 10 on textbook ---------*/
 #define TRUE 1
 #define FALSE 0
@@ -383,9 +384,13 @@ int main()
             scanf("%s", nam);
             int ll = 0;
             ll = AddList(Lists, nam);
-            if (ll == ERROR)
+            if (ll == INFEASIBLE)
             {
                 printf("线性表组溢出!\n");
+            }
+            else if(ll==ERROR)
+            {
+                printf("输入的名字与已有的线性表组中的名字重复!\n");
             }
             else
 
@@ -741,7 +746,14 @@ status AddList(LISTS &Lists, char ListName[])
     /********** Begin *********/
     if (Lists.length > 10)
     {
-        return ERROR;
+        return INFEASIBLE;
+    }
+    for (int i = 0; i < Lists.length;i++)
+    {
+        if(strcmp(Lists.elem[i].name,ListName)==0)
+        {
+            return ERROR;
+        }
     }
     Lists.length++;
     int i = 0;

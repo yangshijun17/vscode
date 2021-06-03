@@ -335,6 +335,10 @@ int main()
             scanf("%s", nam);
             int ll = 0;
             ll = AddList(Lists, nam);
+            if(ll==ERROR)
+            {
+                printf("要添加的表名和已有线性表组中的重复!");
+            }
             printf("您已经成功添加一个线性表啦!\n");
             break;
         }
@@ -775,7 +779,14 @@ status AddList(LISTS &Lists, char ListName[])
     /********** Begin *********/
     if (Lists.length > 10)
     {
-        return ERROR;
+        return INFEASIBLE;
+    }
+    for (int i = 0; i < Lists.length;i++)
+    {
+        if(strcmp(Lists.elem[i].name,ListName)==0)
+        {
+            return ERROR;
+        }
     }
     Lists.length++;
     int i = 0;
