@@ -262,7 +262,12 @@ int main()
             printf("希望赋的值关键字和数据之间以逗号隔开");
             KeyType e;
             TElemType value;
-            scanf("%d%d,%s", &e, &value.key, value.others);
+            int t=scanf("%d%d,%s", &e, &value.key, value.others);
+            if(t==0)
+            {
+                printf("输入格式错误!请重新输入!");
+                t=scanf("%d%d,%s", &e, &value.key, value.others);
+            }
             BiTree T = LocateNode(Trees.elem[num - 1].Bitree, value.key);
             if(T!=NULL)
             {

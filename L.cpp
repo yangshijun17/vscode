@@ -4,6 +4,7 @@ int main()
     int n,f[100][3]={0};
     scanf("%d", &n);
     int i;
+    printf("¹þ¹þ");
     f[0][0] = f[1][1] = f[0][2] = 1;
     for (i = 2; i <= n;i++)
     {
