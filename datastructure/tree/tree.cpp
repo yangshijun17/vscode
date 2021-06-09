@@ -1,6 +1,6 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #define TRUE 1
 #define FALSE 0
 #define OK 1
@@ -46,14 +46,14 @@ status InOrderTree(BiTree T, void (*visit)(BiTree));
 status PostOrderTree(BiTree T, void (*visit)(BiTree));
 status SaveBiTree(BiTree T, char Filename[]);
 status LoadBiTree(BiTree &T, char Filename[]);
-status AddTree(TREES &trees, char treename[]/*,TElemType definition[]*/);
+status AddTree(TREES &trees, char treename[] /*,TElemType definition[]*/);
 status DeleteTree(TREES &trees, char treename[]);
 status TraverseTrees(TREES trees);
 int Locatetree(TREES trees, char treename[]);
 void visit(BiTree T);
 void bt_print(BiTree bt);
 char **printBuffer = NULL;
-int flag1 = 0,i1 = 0,flag15=0,i15=0,j15=0,flag16=0,i16=0,j16=0;
+int flag1 = 0, i1 = 0, flag15 = 0, i15 = 0, j15 = 0, flag16 = 0, i16 = 0, j16 = 0;
 int dep = 0;
 // 该树的深度，如果只有根节点则深度为1
 int depthMax = 0;
@@ -188,16 +188,18 @@ int main()
             {
                 scanf("%d,%s", &definition[j].key, definition[j].others);
             } while (definition[j++].key != -1);
-            if(Trees.elem[num - 1].Bitree!=NULL)
+            if (Trees.elem[num - 1].Bitree != NULL)
             {
                 printf("二叉树已存在!\n");
             }
-            else{
-            int i = CreateBitree(Trees.elem[num - 1].Bitree, definition);
-            if (i == OK)
-                printf("二叉树已经成功创建!\n");
-            else if (i == ERROR)
-                printf("输入关键字不唯一!请检查输入的先序序列!\n");}
+            else
+            {
+                int i = CreateBitree(Trees.elem[num - 1].Bitree, definition);
+                if (i == OK)
+                    printf("二叉树已经成功创建!\n");
+                else if (i == ERROR)
+                    printf("输入关键字不唯一!请检查输入的先序序列!\n");
+            }
             i1 = 0;
             flag1 = 0;
             break;
@@ -205,8 +207,15 @@ int main()
         case 2:
         {
             printf("正在实现DestoryTree功能\n");
-            int i = DestoryBitree(Trees.elem[num - 1].Bitree);
-            printf("第%d个二叉树%s销毁成功!\n", num, Trees.elem[num - 1].name);
+            if (Trees.elem[num - 1].Bitree == NULL)
+            {
+                printf("该树不存在，销毁失败!");
+            }
+            else
+            {
+                int i = DestoryBitree(Trees.elem[num - 1].Bitree);
+                printf("第%d个二叉树%s销毁成功!\n", num, Trees.elem[num - 1].name);
+            }
             break;
         }
         case 3:
@@ -262,40 +271,32 @@ int main()
             printf("希望赋的值关键字和数据之间以逗号隔开");
             KeyType e;
             TElemType value;
-            int t=scanf("%d%d,%s", &e, &value.key, value.others);
-            if(t==0)
-            {
-                printf("输入格式错误!请重新输入!");
-                t=scanf("%d%d,%s", &e, &value.key, value.others);
-            }
+            scanf("%d%d,%s", &e, &value.key, value.others);
             BiTree T = LocateNode(Trees.elem[num - 1].Bitree, value.key);
-            if(T!=NULL)
+            BiTree T1 = LocateNode(Trees.elem[num - 1].Bitree, e);
+            if (T1 == NULL)
             {
-                if(value.key!=e)
-                {
-                    printf("赋值操作失败！一旦成功关键字会有重复!\n");
-                }
-                else
-                {
-                                int i = Assign(Trees.elem[num - 1].Bitree, e, value);
-            if (i == ERROR)
-            {
-                printf("赋值操作失败!请检查该二叉树中是否存在关键字为%d的结点\n", e);
-            }
-            else if(i==OK)
-                printf("已成功赋值!\n");
-                }
+                printf("未找到关键字为%d的结点!", e);
             }
             else
             {
-            int i = Assign(Trees.elem[num - 1].Bitree, e, value);
-            if (i == ERROR)
-            {
-                printf("赋值操作失败!请检查该二叉树中是否存在关键字为%d的结点\n", e);
-            }
-            else if(i==OK)
-                printf("已成功赋值!\n");
-            
+                if (T != NULL)
+                {
+                    if (value.key != e)
+                    {
+                        printf("赋值操作失败！一旦成功关键字会有重复!\n");
+                    }
+                    else
+                    {
+                        Assign(Trees.elem[num - 1].Bitree, e, value);
+                        printf("已成功赋值!\n");
+                    }
+                }
+                else
+                {
+                    Assign(Trees.elem[num - 1].Bitree, e, value);
+                    printf("已成功赋值!\n");
+                }
             }
             break;
         }
@@ -306,13 +307,15 @@ int main()
             KeyType e;
             scanf("%d", &e);
             BiTree T = GetSibling(Trees.elem[num - 1].Bitree, e);
-            if(T==NULL)
+            if (T == NULL)
             {
                 printf("没有找到兄弟节点!\n");
             }
             else
-            {printf("关键字为%d的结点的兄弟结点对应数据为:\n",e);
-            printf("关键字:%d  数据:%s", T->data.key, T->data.others);}
+            {
+                printf("关键字为%d的结点的兄弟结点对应数据为:\n", e);
+                printf("关键字:%d  数据:%s", T->data.key, T->data.others);
+            }
             break;
         }
         case 9:
@@ -322,17 +325,18 @@ int main()
             printf("其中对于插入的位置，输入-1作为根节点插入，输入0作为对应关键字结点的左孩子插入，输入为1作为对应关键字结点的右孩子插入\n");
             printf("其中对于插入结点数据的输入，请以逗号隔开\n");
             KeyType e;
-            int LR=0;
+            int LR = 0;
             TElemType c;
             scanf("%d%d%d,%c", &e, &LR, &c.key, c.others);
-            while(1){
-            if(!(LR==1||LR==-1||LR==0))
+            while (1)
             {
-                printf("请重新输入LR的值!");
-                scanf("%d", &LR);
-            }
-            else
-                break;
+                if (!(LR == 1 || LR == -1 || LR == 0))
+                {
+                    printf("请重新输入LR的值!");
+                    scanf("%d", &LR);
+                }
+                else
+                    break;
             }
             int i = InsertNode(Trees.elem[num - 1].Bitree, e, LR, c);
             if (i == 0)
@@ -361,29 +365,57 @@ int main()
         case 11:
         {
             printf("正在实现PreOrderTree功能\n");
-            printf("树%s的先序遍历序列为:\n", Trees.elem[num - 1].name);
-            PreOrderTree(Trees.elem[num - 1].Bitree, visit);
+            if (Trees.elem[num - 1].Bitree == NULL)
+            {
+                printf("该树为空！\n");
+            }
+            else
+            {
+                printf("树%s的先序遍历序列为:\n", Trees.elem[num - 1].name);
+                PreOrderTree(Trees.elem[num - 1].Bitree, visit);
+            }
             break;
         }
         case 12:
         {
             printf("正在实现InOrderTree功能\n");
-            printf("树%s的中序遍历序列为:\n", Trees.elem[num - 1].name);
-            InOrderTree(Trees.elem[num - 1].Bitree, visit);
+            if (Trees.elem[num - 1].Bitree == NULL)
+            {
+                printf("该树为空!");
+            }
+            else
+            {
+                printf("树%s的中序遍历序列为:\n", Trees.elem[num - 1].name);
+                InOrderTree(Trees.elem[num - 1].Bitree, visit);
+            }
             break;
         }
         case 13:
         {
             printf("正在实现PostOrderTree功能\n");
-            printf("树%s的后序遍历序列为:\n", Trees.elem[num - 1].name);
-            PostOrderTree(Trees.elem[num - 1].Bitree, visit);
+            if (Trees.elem[num - 1].Bitree == NULL)
+            {
+                printf("该树为空!");
+            }
+            else
+            {
+                printf("树%s的后序遍历序列为:\n", Trees.elem[num - 1].name);
+                PostOrderTree(Trees.elem[num - 1].Bitree, visit);
+            }
             break;
         }
         case 14:
         {
             printf("正在实现LevelOrderTree功能\n");
-            printf("树%s的按层遍历序列为:\n", Trees.elem[num - 1].name);
-            bt_print(Trees.elem[num - 1].Bitree);
+            if (Trees.elem[num - 1].Bitree == NULL)
+            {
+                printf("该树为空!");
+            }
+            else
+            {
+                printf("树%s的按层遍历序列为:\n", Trees.elem[num - 1].name);
+                bt_print(Trees.elem[num - 1].Bitree);
+            }
             break;
         }
         case 15:
@@ -393,11 +425,11 @@ int main()
             char Filename[100];
             scanf("%s", Filename);
             int i = SaveBiTree(Trees.elem[num - 1].Bitree, Filename);
-            if(i==ERROR)
+            if (i == ERROR)
             {
                 printf("文件打开失败!\n");
             }
-            else if(i==INFEASIBLE)
+            else if (i == INFEASIBLE)
             {
                 printf("二叉树为空!\n");
             }
@@ -418,11 +450,11 @@ int main()
             scanf("%s", Filename);
             int i = LoadBiTree(Trees.elem[num - 1].Bitree, Filename);
 
-            if(i==ERROR)
+            if (i == ERROR)
             {
                 printf("文件打开失败!\n");
             }
-            else if(i==INFEASIBLE)
+            else if (i == INFEASIBLE)
             {
                 printf("二叉树非空!无法写入!\n");
             }
@@ -442,13 +474,13 @@ int main()
             char Name[100];
             scanf("%s", Name);
             int i = AddTree(Trees, Name);
-            if(i==ERROR)
+            if (i == ERROR)
             {
                 printf("二叉树的名字重复!\n");
             }
-            else if(i==INFEASIBLE)
+            else if (i == INFEASIBLE)
             {
-                printf("输入的序列中的二叉树关键字有重复!\n");
+                printf("二叉树组溢出\n");
             }
             else
             {
@@ -459,15 +491,15 @@ int main()
         case 18:
         {
             printf("正在实现DeleteTree功能\n");
-               printf("请输入想要删除的二叉树的名字");
-                char Name[100];
-                scanf("%s", Name);
-                int i = DeleteTree(Trees, Name);
-            if(i==INFEASIBLE)
+            printf("请输入想要删除的二叉树的名字");
+            char Name[100];
+            scanf("%s", Name);
+            int i = DeleteTree(Trees, Name);
+            if (i == INFEASIBLE)
             {
                 printf("现在还没有二叉树哦，建议使用功能17去创建\n");
             }
-            else if(i==ERROR)
+            else if (i == ERROR)
             {
                 printf("在二叉树组中没有找到这个二叉树!\n");
             }
@@ -480,7 +512,7 @@ int main()
         case 19:
         {
             printf("正在实现TraverseTrees功能\n");
-            if(Trees.length==0)
+            if (Trees.length == 0)
             {
                 printf("现在二叉树组为空!\n");
             }
@@ -497,7 +529,7 @@ int main()
             char name[100];
             scanf("%s", name);
             int i = Locatetree(Trees, name);
-            if(i==ERROR)
+            if (i == ERROR)
             {
                 printf("在二叉树组中没有查找到该树!");
             }
@@ -514,7 +546,7 @@ int main()
         } //end of switch
         getchar();
         getchar();
-    }//end of while
+    } //end of while
     printf("欢迎下次使用本系统!\n");
     getchar();
     getchar();
@@ -522,19 +554,20 @@ int main()
 }
 status CreateBitree(BiTree &T, TElemType definition[])
 {
-    if(flag1==0){
-    for (int j = 0; definition[j].key != -1; j++)
+    if (flag1 == 0)
     {
-        for (int t = j + 1; definition[t].key != -1; t++)
+        for (int j = 0; definition[j].key != -1; j++)
         {
-            if (definition[j].key == definition[t].key && definition[j].key != 0)
+            for (int t = j + 1; definition[t].key != -1; t++)
             {
-        
-                return ERROR;
+                if (definition[j].key == definition[t].key && definition[j].key != 0)
+                {
+
+                    return ERROR;
+                }
             }
         }
-    }
-    flag1 = 1;
+        flag1 = 1;
     }
     //以上为查重的代码
     if (definition[i1].key == -1)
@@ -630,36 +663,37 @@ status Assign(BiTree &T, KeyType e, TElemType value)
     }
     int left = Assign(T->lchild, e, value);
     int right = Assign(T->rchild, e, value);
-    if (left||right)
+    if (left || right)
     {
-        return OK; 
+        return OK;
     }
     else
         return ERROR;
     /********** End **********/
 }
-BiTNode* GetSibling(BiTree T,KeyType e)
+BiTNode *GetSibling(BiTree T, KeyType e)
 //实现获得兄弟结点
 {
     // 请在这里补充代码，完成本关任务
     /********** Begin *********/
-    if(T==NULL)
+    if (T == NULL)
     {
         return NULL;
     }
-    if(T->lchild)
+    if (T->lchild)
     {
-        if(T->lchild->data.key==e)
+        if (T->lchild->data.key == e)
         {
             return T->rchild;
-        }}
-        if(T->rchild)
-        if(T->rchild->data.key==e)
+        }
+    }
+    if (T->rchild)
+        if (T->rchild->data.key == e)
         {
             return T->lchild;
         }
-        return GetSibling(T->lchild,e)?GetSibling(T->lchild,e):GetSibling(T->rchild,e);
-    
+    return GetSibling(T->lchild, e) ? GetSibling(T->lchild, e) : GetSibling(T->rchild, e);
+
     /********** End **********/
 }
 status InsertNode(BiTree &T, KeyType e, int LR, TElemType c)
@@ -826,83 +860,92 @@ status PostOrderTree(BiTree T, void (*visit)(BiTree))
     return OK;
     /********** End **********/
 }
- status SaveBiTree(BiTree T, char FileName[])
+status SaveBiTree(BiTree T, char FileName[])
 //将二叉树的结点数据写入到文件FileName中
 {
 
     static FILE *fp;
     i15++;
-    if(j15==0)
+    if (j15 == 0)
     {
-        if(T==NULL)
+        if (T == NULL)
         {
             return INFEASIBLE;
         }
         j15 = 1;
     }
-    if(!T) {
-    	fp = fopen(FileName,"a+");
-        fprintf(fp,"-1 ");
+    if (!T)
+    {
+        fp = fopen(FileName, "a+");
+        fprintf(fp, "-1 ");
         fclose(fp);
-        return ERROR;}
-    if(flag15==0){
-    //FILE *fp;
-    fp = fopen(FileName,"w");
-    flag15++;
+        return ERROR;
     }
-    else{
-    fp = fopen(FileName,"a+");	
-	}
-    if(T){
-    fprintf(fp,"%d ",i15);
-    fprintf(fp,"%d ",T->data.key);
-    fprintf(fp,"%s ",T->data.others);
-    fclose(fp);
-    SaveBiTree(T->lchild,FileName);
-    SaveBiTree(T->rchild,FileName);
+    if (flag15 == 0)
+    {
+        //FILE *fp;
+        fp = fopen(FileName, "w");
+        flag15++;
+    }
+    else
+    {
+        fp = fopen(FileName, "a+");
+    }
+    if (T)
+    {
+        fprintf(fp, "%d ", i15);
+        fprintf(fp, "%d ", T->data.key);
+        fprintf(fp, "%s ", T->data.others);
+        fclose(fp);
+        SaveBiTree(T->lchild, FileName);
+        SaveBiTree(T->rchild, FileName);
     }
     return OK;
 }
-status LoadBiTree(BiTree &T,  char FileName[])
+status LoadBiTree(BiTree &T, char FileName[])
 //读入文件FileName的结点数据，创建二叉树
 {
     // 请在这里补充代码，完成本关任务
     /********** Begin 2 *********/
     static FILE *fp;
-    if(i16==0)
+    if (i16 == 0)
     {
-        if(T!=NULL)
+        if (T != NULL)
         {
             return INFEASIBLE;
         }
         i16 = 1;
     }
-    if(flag16 == 0){
-        fp = fopen(FileName,"r");
+    if (flag16 == 0)
+    {
+        fp = fopen(FileName, "r");
         flag16++;
     }
-    fscanf(fp,"%d ",&j16);
-    if(j16==-1) T=NULL;
-    else{
-    	T  = (BiTNode *)malloc(sizeof(BiTNode));
-    	fscanf(fp,"%d ",&T->data.key);
-    	fscanf(fp,"%s ",T->data.others);
-    	LoadBiTree(T->lchild,FileName);
-    	LoadBiTree(T->rchild,FileName);
-	}
-    if(fp==NULL) exit(0);
+    fscanf(fp, "%d ", &j16);
+    if (j16 == -1)
+        T = NULL;
+    else
+    {
+        T = (BiTNode *)malloc(sizeof(BiTNode));
+        fscanf(fp, "%d ", &T->data.key);
+        fscanf(fp, "%s ", T->data.others);
+        LoadBiTree(T->lchild, FileName);
+        LoadBiTree(T->rchild, FileName);
+    }
+    if (fp == NULL)
+        exit(0);
     return OK;
     /********** End 2 **********/
 }
-status AddTree(TREES &Trees,char Treename[])
+status AddTree(TREES &Trees, char Treename[])
 {
-    if(Trees.length>10)
+    if (Trees.length > 10)
     {
         return INFEASIBLE;
     }
-    for (int i = 0; i < Trees.length;i++)
+    for (int i = 0; i < Trees.length; i++)
     {
-        if(strcmp(Trees.elem[i].name,Treename)==0)
+        if (strcmp(Trees.elem[i].name, Treename) == 0)
         {
             return ERROR;
         }
@@ -912,22 +955,22 @@ status AddTree(TREES &Trees,char Treename[])
     Trees.elem[Trees.length - 1].Bitree = NULL;
     return OK;
 }
-status DeleteTree(TREES &Trees,char treename[])
+status DeleteTree(TREES &Trees, char treename[])
 {
-    if(Trees.length==0)
+    if (Trees.length == 0)
     {
         return INFEASIBLE;
     }
-    int i = 0, flag=0;
-    for (; i < Trees.length;i++)
+    int i = 0, flag = 0;
+    for (; i < Trees.length; i++)
     {
-        if(strcmp(Trees.elem[i].name,treename)==0)
+        if (strcmp(Trees.elem[i].name, treename) == 0)
         {
             flag = 1;
             break;
         }
     }
-    if(flag==0)
+    if (flag == 0)
     {
         return ERROR;
     }
@@ -941,7 +984,7 @@ status DeleteTree(TREES &Trees,char treename[])
 }
 status TraverseTrees(TREES Trees)
 {
-    for (int i = 0; i < Trees.length;i++)
+    for (int i = 0; i < Trees.length; i++)
     {
         printf("%s", Trees.elem[i].name);
         printf("\n");
@@ -949,18 +992,18 @@ status TraverseTrees(TREES Trees)
     }
     return OK;
 }
-int Locatetree(TREES Trees,char Name[])
+int Locatetree(TREES Trees, char Name[])
 {
-    int i = 0, flag=0;
-    for (; i < Trees.length;i++)
+    int i = 0, flag = 0;
+    for (; i < Trees.length; i++)
     {
-        if(strcmp(Trees.elem[i].name,Name)==0)
+        if (strcmp(Trees.elem[i].name, Name) == 0)
         {
             flag = 1;
             break;
         }
     }
-    if(flag==0)
+    if (flag == 0)
     {
         return ERROR;
     }
@@ -970,62 +1013,66 @@ int Locatetree(TREES Trees,char Name[])
     }
 }
 void bt_print(BiTree bt)
- {
-	column = 0;
-	lastColumn = 0;
-	depthMax = 0;
-	// 根据树的大小申请内存
+{
+    column = 0;
+    lastColumn = 0;
+    depthMax = 0;
+    // 根据树的大小申请内存
     depthMax = BitreeDepth(bt);
     width = 3 * ((1 << (depthMax - 1)) * 2 - 1);
-	int height = 1 + (depthMax - 1) * 3;
-	printBuffer = (char**)malloc(height *sizeof(char*));
-	for (int i = 0; i < height; i++) {
-		printBuffer[i] = (char*)malloc(width * sizeof(char));
-		memset(printBuffer[i],' ',width);
-		printBuffer[i][width - 1] = '\0';
-	}
+    int height = 1 + (depthMax - 1) * 3;
+    printBuffer = (char **)malloc(height * sizeof(char *));
+    for (int i = 0; i < height; i++)
+    {
+        printBuffer[i] = (char *)malloc(width * sizeof(char));
+        memset(printBuffer[i], ' ', width);
+        printBuffer[i][width - 1] = '\0';
+    }
 
-	dep = 0;
-	column = width / 2;
-	lastColumn = column;
-	setPrintBuffer(bt);
-	for (int i = 0; i < height; i++) {
-		for (int j = 0; j < width; j++) {
-			printf("%c", printBuffer[i][j]);
-		}
-		printf("\n");
-	}
-
+    dep = 0;
+    column = width / 2;
+    lastColumn = column;
+    setPrintBuffer(bt);
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            printf("%c", printBuffer[i][j]);
+        }
+        printf("\n");
+    }
 }
-void setPrintBuffer(BiTree t) 
+void setPrintBuffer(BiTree t)
 {
-	if (t) {
-		dep++;
+    if (t)
+    {
+        dep++;
 
-		TElemType data = t->data;
-		printBuffer[(dep - 1) * 3][column-1] = data.key%10 + 0x30;
+        TElemType data = t->data;
+        printBuffer[(dep - 1) * 3][column - 1] = data.key % 10 + 0x30;
         printBuffer[(dep - 1) * 3][column] = ',';
-        strcpy(*(printBuffer+(dep - 1) * 3)+column + 1, data.others);
-		if (dep > 1) {
-			int linkLineInterval =  (column- lastColumn)/3;
-			char linkChar = linkLineInterval > 0 ? '\\' : '/';
-			printBuffer[(dep - 1) * 3 - 1][column - linkLineInterval] = linkChar;
-			printBuffer[(dep - 1) * 3 - 2][column - 2*linkLineInterval] = linkChar;
-		}
-		int step = (1<<(depthMax-dep-1))*3;
-		lastColumn = column;
-		column -= step;
-		setPrintBuffer(t->lchild);
-		column += step;
+        strcpy(*(printBuffer + (dep - 1) * 3) + column + 1, data.others);
+        if (dep > 1)
+        {
+            int linkLineInterval = (column - lastColumn) / 3;
+            char linkChar = linkLineInterval > 0 ? '\\' : '/';
+            printBuffer[(dep - 1) * 3 - 1][column - linkLineInterval] = linkChar;
+            printBuffer[(dep - 1) * 3 - 2][column - 2 * linkLineInterval] = linkChar;
+        }
+        int step = (1 << (depthMax - dep - 1)) * 3;
+        lastColumn = column;
+        column -= step;
+        setPrintBuffer(t->lchild);
+        column += step;
 
-		lastColumn = column;
-		column += step;
-		setPrintBuffer(t->rchild);
-		column -= step;
-		dep--;
-	}
+        lastColumn = column;
+        column += step;
+        setPrintBuffer(t->rchild);
+        column -= step;
+        dep--;
+    }
 }
 void visit(BiTree T)
 {
-    printf(" %d,%s",T->data.key,T->data.others);
+    printf(" %d,%s", T->data.key, T->data.others);
 }
