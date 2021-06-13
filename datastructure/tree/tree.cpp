@@ -44,6 +44,7 @@ status DeleteNode(BiTree &T, KeyType e);
 status PreOrderTree(BiTree T, void (*visit)(BiTree));
 status InOrderTree(BiTree T, void (*visit)(BiTree));
 status PostOrderTree(BiTree T, void (*visit)(BiTree));
+void LevelOrderTree(BiTree T, void (*visit)(BiTree));
 status SaveBiTree(BiTree T, char Filename[]);
 status LoadBiTree(BiTree &T, char Filename[]);
 status AddTree(TREES &trees, char treename[] /*,TElemType definition[]*/);
@@ -79,11 +80,11 @@ int main()
         printf("    	  7. Assign          8. GetSibling\n");
         printf("    	  9. InsertNode     10. DeleteNode\n");
         printf("    	  11. PreOrderTree       12. InOrderTree\n");
-        printf("          13. PostOrderTree     14. LevelOrderTree\n");
+        printf("          13. PostOrderTree     14. PrintTree\n");
         printf("          15. SaveData          16. LoadData\n ");
         printf("          17. AddTree           18. DeleteTree\n");
         printf("          19. TraverseTrees     20. LocateTree\n ");
-        printf("    	          0. Exit\n");
+        printf("    	  21. LevelOrderTree        0. Exit\n");
         printf("-------------------------------------------\n");
         if (Trees.length == 0) //最开始，提示使用功能17
         {
@@ -137,7 +138,7 @@ int main()
                 printf("现在正在对二叉树%s进行操作哦，这是我们的第%d个二叉树\n", Trees.elem[num - 1].name, num);
                 printf("请输入您需要的操作:");
                 scanf("%d", &op);
-                if (op >= 0 && op <= 16)
+                if ((op >= 0 && op <= 16)||op==21)
                 {
                     break;
                 }
@@ -213,7 +214,7 @@ int main()
             }
             else
             {
-                int i = DestoryBitree(Trees.elem[num - 1].Bitree);
+                DestoryBitree(Trees.elem[num - 1].Bitree);
                 printf("第%d个二叉树%s销毁成功!\n", num, Trees.elem[num - 1].name);
             }
             break;
@@ -221,7 +222,7 @@ int main()
         case 3:
         {
             printf("正在实现ClearTree功能\n");
-            int i = ClearBitree(Trees.elem[num - 1].Bitree);
+            ClearBitree(Trees.elem[num - 1].Bitree);
             printf("第%d个二叉树%s已成功清除!\n", num, Trees.elem[num - 1].name);
             break;
         }
@@ -406,14 +407,14 @@ int main()
         }
         case 14:
         {
-            printf("正在实现LevelOrderTree功能\n");
+            printf("正在实现PrintTree功能\n");
             if (Trees.elem[num - 1].Bitree == NULL)
             {
                 printf("该树为空!");
             }
             else
             {
-                printf("树%s的按层遍历序列为:\n", Trees.elem[num - 1].name);
+                printf("该树为:\n");
                 bt_print(Trees.elem[num - 1].Bitree);
             }
             break;
@@ -541,6 +542,13 @@ int main()
         }
         case 0:
         {
+            break;
+        }
+        case 21:
+        {
+            printf("正在实现LevelOrderTree功能!\n");
+            printf("该树的按层遍历序列为:\n");
+            LevelOrderTree(Trees.elem[num - 1].Bitree,visit);
             break;
         }
         } //end of switch
@@ -1064,7 +1072,6 @@ void setPrintBuffer(BiTree t)
         column -= step;
         setPrintBuffer(t->lchild);
         column += step;
-
         lastColumn = column;
         column += step;
         setPrintBuffer(t->rchild);
@@ -1075,4 +1082,27 @@ void setPrintBuffer(BiTree t)
 void visit(BiTree T)
 {
     printf(" %d,%s", T->data.key, T->data.others);
+}
+void LevelOrderTree(BiTree T,void(*visit)(BiTree))
+{
+    if(T==NULL)
+    {
+        return;
+    }
+    BiTree que[100];
+    int front = 0, rear = 0;
+    que[rear] = T;
+    rear++;
+    while(front!=rear)
+    {
+        BiTree q;
+        q = que[front];
+        front++;
+        visit(q);
+        if(q->lchild)
+            que[rear++] = q->lchild;
+        if(q->rchild)
+        que[rear++]=q->rchild;
+    }
+    return;
 }

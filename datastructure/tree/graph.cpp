@@ -189,7 +189,7 @@ int main()
         case 1:
         {
             printf("正在实现CreateGraph功能\n");
-            printf("请输入邻接表的点序列:\n");
+            printf("请输入邻接表的点序列:\n");//提示输入
             VertexType v[20];
             KeyType VR[100][2];
             int j = 0;
@@ -546,10 +546,10 @@ status CreateGraph(ALGraph &G, VertexType V[], KeyType VR[][2])
             j++;
         }
         i++;
-    }
+    }//查看是否有重复的关键字
     if (i > 20 || i == 0)
     {
-        return ERROR;
+        return ERROR;//查看节点数量是否不合法
     }
     i = 0;
     while (V[i].key != -1)
@@ -557,10 +557,10 @@ status CreateGraph(ALGraph &G, VertexType V[], KeyType VR[][2])
         G.vertices[i].data = V[i];
         G.vertices[i].firstarc = NULL;
         i++;
-    }
-    G.vexnum = i;
+    }//将邻接表的主体部分进行输入
+    G.vexnum = i;//节点数确定
     int flag = 0;
-    for (int i = 0; VR[i][0] != -1; i++)
+    for (int i = 0; VR[i][0] != -1; i++)//下面的二重循环用于把关键字序列变成位序
     {
         for (int j = 0; j < 2; j++)
         {
@@ -582,7 +582,7 @@ status CreateGraph(ALGraph &G, VertexType V[], KeyType VR[][2])
             }
         }
     }
-    for (int i = 0; VR[i][0] != -1; i++)
+    for (int i = 0; VR[i][0] != -1; i++)//进行链表的创建
     {
         ArcNode *p = (ArcNode *)malloc(sizeof(ArcNode));
         p->adjvex = VR[i][1];
@@ -622,7 +622,7 @@ status DestoryGraph(ALGraph &G)
     {
         return ERROR;
     }
-    /*for (int i = 0; i < G.vexnum; i++)
+    for (int i = 0; i < G.vexnum; i++)
     {
         ArcNode *p = NULL;
         while (G.vertices[i].firstarc != NULL)
@@ -631,10 +631,6 @@ status DestoryGraph(ALGraph &G)
             G.vertices[i].firstarc = G.vertices[i].firstarc->nextarc;
             free(p);
         }
-    }*/
-    for (int i = 0; i < G.vexnum;i++)
-    {
-        G.vertices[i].firstarc = NULL;
     }
     G.vexnum = 0;
     G.arcnum = 0;
@@ -773,14 +769,14 @@ status DeleteVex(ALGraph &G, KeyType v)
         {
             break;
         }
-    }
+    }//判断是否查找到
     if (i == G.vexnum)
     {
         return ERROR;
     }
     if (G.vexnum == 1)
     {
-        return ERROR;
+        return ERROR;//判断节点数是否合法
     }
     ArcNode *p = G.vertices[i].firstarc;
     ArcNode *q = p;
@@ -814,7 +810,7 @@ status DeleteVex(ALGraph &G, KeyType v)
                 p = q->nextarc;
                 continue;
             }
-            if (p->adjvex >= i)
+            if (p->adjvex >= i)//更改位序
             {
                 p->adjvex--;
             }
@@ -963,20 +959,19 @@ status DeleteArc(ALGraph &G, KeyType v, KeyType w)
     return OK;
     /********** End **********/
 }
-void DFS(ALGraph G, int v, int flag[], void (*visit)(VertexType));
 void DFSTraverse(ALGraph G, void (*visit)(VertexType))
 //对图G进行深度优先搜索遍历，依次对图中的每一个顶点使用函数visit访问一次，且仅访问一次
 {
     // 请在这里补充代码，完成本关任务
     /********** Begin *********/
-    int i, flag[20];
+    int i, flag[20];//flag[]用来表示当前节点是否被访问过
     for (i = 0; i < G.vexnum; i++)
     {
-        flag[i] = 0;
+        flag[i] = 0;//初始化
     }
     for (i = 0; i < G.vexnum; i++)
     {
-        if (!flag[i])
+        if (!flag[i])//如果没有被访问过，则进行DFS操作
         {
             DFS(G, i, flag, visit);
         }
@@ -988,7 +983,7 @@ void DFS(ALGraph G, int v, int flag[], void (*visit)(VertexType))
     ArcNode *p;
     int w;
     flag[v] = TRUE;
-    visit(G.vertices[v].data);
+    visit(G.vertices[v].data);//访问当前节点
     for (p = G.vertices[v].firstarc; p; p = p->nextarc)
     {
         w = p->adjvex;
@@ -1005,22 +1000,22 @@ void BFSTraverse(ALGraph G, void (*visit)(VertexType))
     ArcNode *p;
     for (int i = 0; i < G.vexnum; i++)
     {
-        flag[i] = 0;
+        flag[i] = 0;//对flag数组进行初始化
     }
-    VNode que[100];
+    VNode que[100];//定义一个队列，其实这里用循环队列要更好一些，但是这里没有
     for (int i = 0; i < G.vexnum; i++)
     {
-        if (!flag[i])
+        if (!flag[i])//如果没有被访问过
         {
-            flag[i] = 1;
-            que[rear] = G.vertices[i];
+            flag[i] = 1;//访问
+            que[rear] = G.vertices[i];//入队
             rear++;
             visit(G.vertices[i].data);
-            while (front != rear)
+            while (front != rear)//当队列不为空
             {
-                p = que[front].firstarc;
+                p = que[front].firstarc;//出队
                 front++;
-                while (p)
+                while (p)//遍历后面的所有邻接结点
                 {
                     if (!flag[p->adjvex])
                     {
