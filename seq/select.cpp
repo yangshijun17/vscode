@@ -5,22 +5,22 @@ int main()
 {
     int n, a[20];
     scanf("%d", &n);
-    for (int i = 1; i <= n;i++)
+    for (int i = 0; i < n;i++)
     {
         scanf("%d", &a[i]);
     }
     int i;
     scanf("%d", &i);
-    printf("%d", select(a, 1, n, i));
+    printf("%d", select(a, 0, n-1, i));
 }
 int select(int a[],int p,int r,int i)
 {
-    if(p==r)
+    if(p>=r)
     {
         return a[r];
     }
     int q = partition(a, p, r);//求出比主元要小的分界线
-    int k = q - p + 1;//计算出比主元小的个数
+    int k = q - p+1;//计算出比主元小的个数
     if(i==k)//如果刚好在主元前面有i个比他小的(包括它本身)
     {//则直接返回该主元即可
         return a[q];
@@ -40,10 +40,10 @@ int partition(int a[],int p,int r)
     /*其实本应该随机选取主元的，这里为了方便，没有这样做*/
     int x = a[r];
     int i, j;
-    i = p - 1, j = p;
-    for (; j <= r;j++)
+    i = p-1, j = p;
+    for (; j < r;j++)
     {
-        if(a[j]<x)
+        if(a[j]<=x)
         {
             i++;
             int t;
@@ -51,6 +51,6 @@ int partition(int a[],int p,int r)
         }
     }
     int t;
-    t = a[i + 1], a[i + 1] = a[r], a[r] = t;
-    return i + 1;
+    t = a[i+1], a[i+1] = a[r], a[r+1] = t;
+    return i+1;
 }
