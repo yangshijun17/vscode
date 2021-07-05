@@ -1,9 +1,10 @@
 #include<stdio.h>
 void quicksort(int a[], int p, int r);
 int partition(int a[], int p, int r);
+int n;
 int main()
 {
-    int n, a[20];
+    int a[20];
     scanf("%d", &n);
     for (int i = 1; i <= n;i++)
     {
@@ -39,5 +40,10 @@ int partition(int a[],int p,int r)
     }
     int t;
     t = a[i + 1], a[i + 1] = a[r],a[r]=t;
-    return i+1;
+    for (int i = 1; i <= n;i++)
+    {
+        printf("%d ",a[i]);
+    }
+    printf("\n");
+    return i + 1;
 }
