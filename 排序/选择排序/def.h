@@ -1,0 +1,22 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include<string.h>
+#include<limits.h>
+/*---------page 10 on textbook ---------*/
+#define TRUE 1
+#define FALSE 0
+#define OK 1
+#define ERROR 0
+#define INFEASIBLE -1
+#define OVERFLOW -2
+typedef int status;
+typedef int ElemType; //数据元素类型定义
+/*-------page 22 on textbook -------*/
+#define LIST_INIT_SIZE 100
+#define LISTINCREMENT 10
+typedef struct
+{ //顺序表（顺序结构）的定义
+    ElemType *elem = NULL;
+    int length;
+    int listsize;
+} SqList;
