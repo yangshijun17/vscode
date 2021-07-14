@@ -1,8 +1,7 @@
 /* Linear Table On Sequence Structure */
 #include <stdio.h>
 #include <stdlib.h>
-#include<string.h>
-/*---------page 10 on textbook ---------*/
+#include <string.h>
 #define TRUE 1
 #define FALSE 0
 #define OK 1
@@ -11,67 +10,64 @@
 #define OVERFLOW -2
 typedef int status;
 typedef int ElemType; //数据元素类型定义
-/*-------page 22 on textbook -------*/
 #define LIST_INIT_SIZE 100
 #define LISTINCREMENT 10
-typedef struct
-{ //顺序表（顺序结构）的定义
-    ElemType *elem = NULL;
-    int length;
-    int listsize;
-} SqList;
+typedef int ElemType;
+typedef struct LNode
+{ //单链表（链式结构）结点的定义
+    ElemType data;
+    struct LNode *next;
+} LNode, *LinkList;
 typedef struct
 { //线性表的集合类型定义
     struct
     {
         char name[30]; //这个线性表的名字
-        SqList L;      //线性表
-    } elem[10];
+        LinkList L;    //线性表
+    } elem[100];
     int length; //线性表组中一共有多少线性表
 } LISTS;
-/*-----page 19 on textbook ---------*/
-status InitList(SqList &L);
-status DestroyList(SqList &L);
-status ClearList(SqList &L);
-status ListEmpty(SqList L);
-status ListLength(SqList L);
-status GetElem(SqList L, int i, ElemType &e);
-status LocateElem(SqList L, ElemType e); //简化过
-status PriorElem(SqList L, ElemType cur, ElemType &pre_e);
-status NextElem(SqList L, ElemType cur, ElemType &next_e);
-status ListInsert(SqList &L, int i, ElemType e);
-status ListDelete(SqList &L, int i, ElemType &e);
-status ListTrabverse(SqList L);
-status SaveList(SqList L, char FileName[]);
-status LoadList(SqList &L, char FileName[]);
+status InitList(LinkList &L);
+status DestoryList(LinkList &L);
+status ClearList(LinkList &L);
+status ListEmpty(LinkList L);
+status ListLength(LinkList L);
+status GetElem(LinkList L, int i, ElemType &e);
+status LocateElem(LinkList L, ElemType e);
+status PriorElem(LinkList L, ElemType e, ElemType &pre);
+status NextElem(LinkList L, ElemType e, ElemType &next);
+status ListInsert(LinkList &L, int i, ElemType e);
+status ListDelete(LinkList &L, int i, ElemType &e);
+status ListTraverse(LinkList L);
+status SaveList(LinkList L, char Filename[]);
+status LoadList(LinkList &L, char Filename[]);
 status AddList(LISTS &Lists, char ListName[]);
 status RemoveList(LISTS &Lists, char ListName[]);
 status LocateList(LISTS Lists, char ListName[]);
 status TrabverseList(LISTS Lists); //简化过
-/*--------------------------------------------*/
 int main()
 {
-    SqList L;
     LISTS Lists;
-    //L.elem = NULL;
     Lists.length = 0;
-    int op = 1, e, i, num, flag = 0;
+    int op = 1, j, e, flag = 0, num;
     while (op)
     {
         system("cls");
         printf("\n\n      Menu for Linear Table On Sequence Structure \n");
         printf("-------------------------------------------------\n");
-        printf("    	  1. InitList       10. ListInsert\n");
-        printf("    	  2. DestroyList    11. ListDelete\n");
-        printf("    	  3. ClearList       12. ListTrabverse\n");
-        printf("    	  4. ListEmpty     13. AddList\n");
-        printf("    	  5. ListLength     14. RemoveList\n");
-        printf("    	  6. GetElem       15. LocateList\n");
+        printf("          1. InitList       10. ListInsert\n");
+        printf("          2. DestroyList    11. ListDelete\n");
+        printf("          3. ClearList       12. ListTrabverse\n");
+        printf("          4. ListEmpty     13. AddList\n");
+        printf("          5. ListLength     14. RemoveList\n");
+        printf("          6. GetElem       15. LocateList\n");
         printf("          7. LocateElem      16. TrabverseList\n");
         printf("          8. PriorElem    17. SaveList\n");
         printf("          9. NextElem      18. LoadList\n");
         printf("                   0. Exit\n");
         printf("-------------------------------------------------\n");
+        /*下面使用了大量的if-else分支结构，主要是对错误的输入进行各种情况的处理判断
+        同时使用while循环，可以重复输入*/
         if (Lists.length == 0)
         {
             printf("现在还没有线性表哦，赶快使用功能13创建一个吧！\n");
@@ -86,7 +82,6 @@ int main()
                 if (flag == 0)
                 {
                     printf("\n欢迎下次使用本系统!\n");
-                    getchar();
                     getchar();
                     return 0;
                 }
@@ -146,7 +141,7 @@ int main()
                     printf("选择的操作不对哦，请重新输入\n");
                 }
             }
-            /*while (flag != 1 && flag != 2)
+            while (flag != 1 && flag != 2)
             {
                 scanf("%d", &op);
                 if (op > 19 || op < 0)
@@ -155,7 +150,7 @@ int main()
                 }
                 else
                     break;
-            }*/
+            }
         }
         else
         {
@@ -172,229 +167,179 @@ int main()
                 }
             }
         }
-        switch (op)
+        switch (op) /*下面是对于各种情况的分支*/
         {
         case 1:
-            printf("正在实现IntiList功能\n");
-            //printf("现在正在对线性表%s进行操作哦，这是我们的第%d个线性表\n", Lists.elem[num - 1].name, num);
-            if (InitList(Lists.elem[num - 1].L) == OK)
-                printf("线性表创建成功！\n");
+        {
+            printf("正在实现InitList功能\n");
+            j = InitList(Lists.elem[num - 1].L);
+            if (j == INFEASIBLE)
+            {
+                printf("该线性表已存在，请重新选择!\n");
+            }
             else
-                printf("线性表创建失败！\n");
+                printf("线性表已成功初始化\n");
             break;
+        }
         case 2:
-            printf("正在实现DestoryList功能\n");
-            //printf("现在正在对线性表%s进行操作哦，这是我们的第%d个线性表\n", Lists.elem[num - 1].name, num);
-            if (DestroyList(Lists.elem[num - 1].L) == INFEASIBLE)
+        {
+            printf("正在实现DestroyList功能\n");
+            j = DestoryList(Lists.elem[num - 1].L);
+            if (j == INFEASIBLE)
             {
-                printf("线性表L不存在，销毁失败!\n");
+                printf("该线性表不存在！\n");
             }
             else
-            {
-                printf("线性表L成功销毁!\n");
-            }
+                printf("该线性表已成功销毁\n");
             break;
+        }
         case 3:
+        {
             printf("正在实现ClearList功能\n");
-            //printf("现在正在对线性表%s进行操作哦，这是我们的第%d个线性表\n", Lists.elem[num - 1].name, num);
-            if (ClearList(Lists.elem[num - 1].L) == INFEASIBLE)
-            {
-                printf("线性表L不存在，清除失败!\n");
-            }
+            j = ClearList(Lists.elem[num - 1].L);
+            if (j == INFEASIBLE)
+                printf("该线性表不存在!\n");
             else
-            {
-                printf("已成功清除\n");
-            }
+                printf("该线性表已成功清空!\n");
             break;
+        }
         case 4:
-            printf("正在实现ListEmpty功能!\n");
-            //printf("现在正在对线性表%s进行操作哦，这是我们的第%d个线性表\n", Lists.elem[num - 1].name, num);
-            if (ListEmpty(Lists.elem[num - 1].L) == INFEASIBLE)
-            {
-                printf("线性表不存在!\n");
-            }
-            else if (ListEmpty(Lists.elem[num - 1].L) == TRUE)
-            {
-                printf("线性表为空!\n");
-            }
-            else
-            {
+        {
+            printf("正在实现ListEmpty功能\n");
+            j = ListEmpty(Lists.elem[num - 1].L);
+            if (j == INFEASIBLE)
+                printf("该线性表不存在!\n");
+            else if (j == ERROR)
                 printf("线性表非空!\n");
-            }
+            else
+                printf("线性表为空!\n");
             break;
+        }
         case 5:
+        {
             printf("正在实现ListLength功能\n");
-            //printf("现在正在对线性表%s进行操作哦，这是我们的第%d个线性表\n", Lists.elem[num - 1].name, num);
-            if (ListLength(Lists.elem[num - 1].L) == INFEASIBLE)
-            {
+            j = ListLength(Lists.elem[num - 1].L);
+            if (j == INFEASIBLE)
                 printf("线性表不存在!\n");
-            }
             else
-            {
-                printf("线性表的长度为:%d\n", ListLength(Lists.elem[num - 1].L));
-            }
+                printf("线性表长度为%d", j);
             break;
+        }
         case 6:
+        {
             printf("正在实现GetElem功能\n");
-            //printf("现在正在对线性表%s进行操作哦，这是我们的第%d个线性表\n", Lists.elem[num - 1].name, num);
-            printf("请输入您需要的线性表中的元素序号\n");
+            printf("请输入您想要查找的元素的位置序号:\n");
+            int i;
             scanf("%d", &i);
-            putchar('\n');
-            if (GetElem(Lists.elem[num - 1].L, i, e) == INFEASIBLE)
-            {
+            j = GetElem(Lists.elem[num - 1].L, i, e);
+            if (j == INFEASIBLE)
                 printf("线性表不存在!\n");
-            }
-            else if (GetElem(Lists.elem[num - 1].L, i, e) == ERROR)
+            else if (j == ERROR)
             {
-                printf("输入的元素序号有误!,请重新输入!\n");
+                printf("输入的位置序号有误!\n");
             }
             else
-            {
-                printf("您需要的第%d个元素为%d\n", i, e);
-            }
+                printf("该元素为%d", e);
             break;
+        }
         case 7:
         {
             printf("正在实现LocateElem功能\n");
-            //printf("现在正在对线性表%s进行操作哦，这是我们的第%d个线性表\n", Lists.elem[num - 1].name, num);
-            printf("请输入您需要查找的元素值:");
+            printf("请输入您想要查找的元素的值:");
             scanf("%d", &e);
-            putchar('\n');
-            int j = LocateElem(Lists.elem[num - 1].L, e);
+            j = LocateElem(Lists.elem[num - 1].L, e);
             if (j == INFEASIBLE)
-            {
                 printf("线性表不存在!\n");
-            }
             else if (j == ERROR)
-            {
-                printf("未查找到该元素的位置，线性表中无该元素!\n");
-            }
+                printf("在线性表中没有元素%d", e);
             else
-            {
-                printf("元素%d的位置序号为%d\n", e, j);
-            }
+                printf("线性表中元素%d的位置是%d", e, j);
             break;
         }
         case 8:
+        {
             printf("正在实现PriorElem功能\n");
-            //printf("现在正在对线性表%s进行操作哦，这是我们的第%d个线性表\n", Lists.elem[num - 1].name, num);
-            printf("请输入您想查找前驱的元素:");
-            int prior;
+            printf("请输入您想要查找其前驱的元素:");
             scanf("%d", &e);
-            putchar('\n');
-            if (PriorElem(Lists.elem[num - 1].L, e, prior) == INFEASIBLE)
-            {
+            int pri;
+            j = PriorElem(Lists.elem[num - 1].L, e, pri);
+            if (j == INFEASIBLE)
                 printf("线性表不存在!\n");
-            }
-            else if (PriorElem(Lists.elem[num - 1].L, e, prior) == ERROR)
-            {
-                printf("该元素没有前驱!\n");
-            }
+            else if (j == ERROR)
+                printf("在线性表中没有查找到元素%d的前驱", e);
             else
-            {
-                printf("元素%d的前驱为%d\n", e, prior);
-            }
+                printf("元素%d的前驱为%d", e, pri);
             break;
+        }
         case 9:
+        {
             printf("正在实现NextElem功能\n");
-            //printf("现在正在对线性表%s进行操作哦，这是我们的第%d个线性表\n", Lists.elem[num - 1].name, num);
-            printf("请输入您想查询其后继的元素:");
-            int next;
+            printf("请输入您想要查找其后驱的元素:\n");
             scanf("%d", &e);
-            putchar('\n');
-            if (NextElem(Lists.elem[num - 1].L, e, next) == INFEASIBLE)
-            {
-                printf("该线性表不存在!\n");
-            }
-            else if (NextElem(Lists.elem[num - 1].L, e, next) == ERROR)
-            {
-                printf("该元素没有后继!\n");
-            }
+            int next;
+            j = NextElem(Lists.elem[num - 1].L, e, next);
+            if (j == INFEASIBLE)
+                printf("线性表不存在!\n");
+            else if (j == ERROR)
+                printf("没有查找到元素%d的后驱\n", e);
             else
-            {
-                printf("元素%d的后继为%d\n", e, next);
-            }
+                printf("元素%d的后驱为%d", e, next);
             break;
+        }
         case 10:
         {
             printf("正在实现ListInsert功能\n");
-            //printf("现在正在对线性表%s进行操作哦，这是我们的第%d个线性表\n", Lists.elem[num - 1].name, num);
-            printf("请输入您想插入的元素以及想插入的位置(该功能将会把这个元素插入到该位置之前):");
-            scanf("%d %d", &e, &i);
-            putchar('\n');
-            int j = ListInsert(Lists.elem[num - 1].L, i, e);
+            printf("请输入您想要插入的位置以及插入元素的值:\n");
+            int i;
+            scanf("%d%d", &i, &e);
+            j = ListInsert(Lists.elem[num - 1].L, i, e);
             if (j == INFEASIBLE)
-            {
                 printf("线性表不存在!\n");
-            }
             else if (j == ERROR)
-            {
-                printf("插入的位置不合理!\n");
-            }
+                printf("输入的位置错误!\n");
             else
-            {
-                printf("已成功插入\n");
-            }
+                printf("已成功插入!\n");
             break;
         }
         case 11:
         {
             printf("正在实现ListDelete功能\n");
-            //printf("现在正在对线性表%s进行操作哦，这是我们的第%d个线性表\n", Lists.elem[num - 1].name, num);
-            printf("请输入您想要删除的位置");
+            printf("请输入您想要删除的元素的位置序号:\n");
+            int i;
             scanf("%d", &i);
-            putchar('\n');
-            int j = ListDelete(Lists.elem[num - 1].L, i, e);
+            j = ListDelete(Lists.elem[num - 1].L, i, e);
             if (j == INFEASIBLE)
-            {
                 printf("线性表不存在!\n");
-            }
             else if (j == ERROR)
-            {
-                printf("删除位置不合理!\n");
-            }
+                printf("删除位置错误!\n");
             else
-            {
-                printf("删除成功!\n");
-                printf("删除的元素值为%d\n", e);
-            }
+                printf("您删除的位置的元素纸为%d", e);
             break;
         }
         case 12:
         {
-            printf("正在实现ListTrabverse功能\n");
-            //printf("现在正在对线性表%s进行操作哦，这是我们的第%d个线性表\n", Lists.elem[num - 1].name, num);
-            int t = ListTrabverse(Lists.elem[num - 1].L);
-            if (t == INFEASIBLE)
-            {
-                printf("线性表不存在！\n");
-            }
-            else if(t==ERROR)
-            {
-                printf("线性表为空！\n");
-            }
-            printf("\n");
+            printf("正在实现ListTraverse功能\n");
+            int j = ListTraverse(Lists.elem[num - 1].L);
+            if (j == INFEASIBLE)
+                printf("该表不存在!\n");
+            else if (j == ERROR)
+                printf("该表为空!\n");
             break;
         }
         case 13:
         {
+
             printf("正在实现AddList功能\n");
             printf("先给这个线性表起个名字吧:");
             char nam[100];
             scanf("%s", nam);
             int ll = 0;
             ll = AddList(Lists, nam);
-            if (ll == INFEASIBLE)
+            if(ll==ERROR)
             {
-                printf("线性表组溢出!\n");
+                printf("要添加的表名和已有线性表组中的重复!");
             }
-            else if(ll==ERROR)
-            {
-                printf("输入的名字与已有的线性表组中的名字重复!\n");
-            }
-            else
-
-                printf("您已经成功添加一个线性表啦!\n");
+            printf("您已经成功添加一个线性表啦!\n");
             break;
         }
         case 14:
@@ -451,294 +396,382 @@ int main()
             scanf("%s", filename);
             int j = SaveList(Lists.elem[num - 1].L, filename);
             if (j == INFEASIBLE)
-            {
-                printf("该线性表不存在，赶快去创建一个吧!\n");
-            }
+                printf("线性表不存在!\n");
             else if (j == ERROR)
-            {
-                printf("无法正常打开文件，请检查是否出错!\n");
-            }
+                printf("无法正常打开文件!\n");
             else
-            {
-                printf("该功能已实现！");
-            }
+                printf("已成功将线性表中的内容保存到文件中\n");
             break;
         }
         case 18:
         {
             printf("正在实现LoadList功能\n");
             char filename[100];
-            printf("请输入文件路径与文件名\n");
+            printf("请输入文件路径与文件名:");
             scanf("%s", filename);
-            int j = LoadList(Lists.elem[num - 1].L, filename);
+            j = LoadList(Lists.elem[num - 1].L, filename);
             if (j == INFEASIBLE)
-            {
-                printf("该线性表不为空！\n");
-            }
+                printf("线性表不存在!\n");
             else if (j == ERROR)
-            {
-                printf("无法正常打开文件，请检查是否出错!\n");
-            }
+                printf("无法正常打开文件!\n");
             else
-            {
-                printf("该功能已实现！");
-            }
+                printf("文件中的内容已成功写入到线性表中\n");
             break;
         }
         case 0:
         {
-            break;
+            printf("欢迎下次使用本系统!\n");
+            getchar();
         }
-        } //end of switch
+        }
         system("pause");
-    } //end of while
-    printf("欢迎下次再使用本系统！\n");
-    getchar();
-    getchar();
-} //end of main()
-/*--------page 23 on textbook --------------------*/
-status InitList(SqList &L)
+    }
+}
+status InitList(LinkList &L)
 // 线性表L不存在，构造一个空的线性表，返回OK，否则返回INFEASIBLE。
 {
     /********** Begin *********/
-    if (L.elem == NULL)
-    {
-        L.elem = (int *)malloc(100);
-        L.listsize = LIST_INIT_SIZE;
-        L.length = 0;
-        return OK;
-    }
-    else
+    if (L != NULL)
     {
         return INFEASIBLE;
     }
+    LinkList p;
+    p = (LinkList)malloc(sizeof(LNode));
+    p->next = NULL;
+    L = p;
+    return OK;
+    /********** End **********/
+}
+status DestoryList(LinkList &L)
+// 如果线性表L存在，销毁线性表L，释放数据元素的空间，返回OK，否则返回INFEASIBLE。
+{
+    // 请在这里补充代码，完成本关任务
+    /********** Begin *********/
+    if (L == NULL)
+    {
+        return INFEASIBLE;
+    }
+    else
+    {
+        L = NULL;
+    }
+    return OK;
+    /********** End **********/
+}
+
+status ClearList(LinkList &L)
+// 如果线性表L存在，删除线性表L中的所有元素，返回OK，否则返回INFEASIBLE。
+{
+    // 请在这里补充代码，完成本关任务
+    /********** Begin *********/
+    if (L == NULL)
+    {
+        return INFEASIBLE;
+    }
+    else
+    {
+        LinkList p, q;
+        p = L->next;
+        while (p != NULL)
+        {
+            q = p->next;
+            free(p);
+            p = q;
+        }
+    }
+    L->next = NULL;
+    return OK;
 
     /********** End **********/
 }
-status DestroyList(SqList &L)
-// 如果线性表L存在，销毁线性表L，释放数据元素的空间，返回OK，否则返回INFEASIBLE。
-{
-    /********** Begin *********/
-    if (L.elem == NULL)
-    {
-        return INFEASIBLE;
-    }
-    else
-    {
-        free(L.elem);
-        L.elem = NULL;
-        L.length = 0;
-        return OK;
-    }
-    /********** End **********/
-}
-status ClearList(SqList &L)
-// 如果线性表L存在，删除线性表L中的所有元素，返回OK，否则返回INFEASIBLE。
-{
-    /********** Begin *********/
-    if (L.elem == NULL)
-    {
-        return INFEASIBLE;
-    }
-    else
-    {
-        L.length = 0;
-        return OK;
-    }
-    /********** End **********/
-}
-status ListEmpty(SqList L)
+status ListEmpty(LinkList L)
 // 如果线性表L存在，判断线性表L是否为空，空就返回TRUE，否则返回FALSE；如果线性表L不存在，返回INFEASIBLE。
 {
     // 请在这里补充代码，完成本关任务
     /********** Begin *********/
-    if (L.elem == NULL)
+    if (L == NULL)
     {
         return INFEASIBLE;
     }
-    if (L.length == 0)
+    if (L->next == NULL)
     {
-        return TRUE;
-    }
-    else
-    {
-        return FALSE;
-    }
-    /********** End **********/
-}
-status ListLength(SqList L)
-// 如果线性表L存在，返回线性表L的长度，否则返回INFEASIBLE。
-{
-    /********** Begin *********/
-    if (L.elem == NULL)
-    {
-        return INFEASIBLE;
-    }
-    return L.length;
-    /********** End **********/
-}
-status GetElem(SqList L, int i, ElemType &e)
-// 如果线性表L存在，获取线性表L的第i个元素，保存在e中，返回OK；
-//如果i不合法，返回ERROR；如果线性表L不存在，返回INFEASIBLE。
-{
-    /********** Begin *********/
-    if (L.elem == NULL)
-    {
-        return INFEASIBLE;
-    }
-    if (i > L.length || i == 0)
-    {
-        return ERROR;
-    }
-    e = L.elem[i - 1];
-    return OK;
-    /********** End **********/
-}
-status LocateElem(SqList L, ElemType e)
-// 如果线性表L存在，查找元素e在线性表L中的位置序号并返回OK；
-//如果e不存在，返回ERROR；当线性表L不存在时，返回INFEASIBLE。
-{
-    /********** Begin *********/
-    if (L.elem == NULL)
-    {
-        return INFEASIBLE;
-    }
-    for (int i = 0; i < L.length; i++)
-    {
-        if (L.elem[i] == e)
-        {
-            return i + 1;
-        }
-    }
-    return ERROR;
-    /********** End **********/
-}
-status PriorElem(SqList L, ElemType e, ElemType &pre)
-// 如果线性表L存在，获取线性表L中元素e的前驱，保存在pre中，返回OK；
-//如果没有前驱，返回ERROR；如果线性表L不存在，返回INFEASIBLE。
-{
-    /********** Begin *********/
-    if (L.elem == NULL)
-    {
-        return INFEASIBLE;
-    }
-    for (int i = 0; i < L.length; i++)
-    {
-        if (L.elem[i] == e)
-        {
-            if (i > 0)
-            {
-                pre = L.elem[i - 1];
-                return OK;
-            }
-        }
-    }
-    return ERROR;
-    /********** End **********/
-}
-status NextElem(SqList L, ElemType e, ElemType &next)
-// 如果线性表L存在，获取线性表L元素e的后继，保存在next中，返回OK；
-//如果没有后继，返回ERROR；如果线性表L不存在，返回INFEASIBLE。
-{
-    /********** Begin *********/
-    if (L.elem == NULL)
-    {
-        return INFEASIBLE;
-    }
-    for (int i = 0; i < L.length; i++)
-    {
-        if (L.elem[i] == e)
-        {
-            if (i != L.length - 1)
-            {
-                next = L.elem[i + 1];
-                return OK;
-            }
-        }
-    }
-    return ERROR;
-    /********** End **********/
-}
-status ListInsert(SqList &L, int i, ElemType e)
-// 如果线性表L存在，将元素e插入到线性表L的第i个元素之前，返回OK；
-//当插入位置不正确时，返回ERROR；如果线性表L不存在，返回INFEASIBLE。
-{
-    /********** Begin *********/
-    if (L.elem == NULL)
-    {
-        return INFEASIBLE;
-    }
-    if (L.length == 0)
-    {
-        if (i == 1)
-        {
-            L.elem[0] = e;
-            L.length++;
-            return OK;
-        }
-        return ERROR;
-    }
-    if (i > L.length + 1 || i <= 0)
-    {
-        return ERROR;
-    }
-    if (L.length == L.listsize)
-    {
-        L.elem = (ElemType *)realloc(L.elem, 100);
-    }
-    for (int j = L.length - 1; j >= i - 1; j--)
-    {
-        L.elem[j + 1] = L.elem[j];
-    }
-    L.elem[i - 1] = e;
-    L.length++;
-    return OK;
-    /********** End **********/
-}
-status ListDelete(SqList &L, int i, ElemType &e)
-// 如果线性表L存在，删除线性表L的第i个元素，并保存在e中，返回OK；
-//当删除位置不正确时，返回ERROR；如果线性表L不存在，返回INFEASIBLE。
-{
-    if (L.elem == NULL)
-    {
-        return INFEASIBLE;
-    } /********** Begin *********/
-    if (i <= 0 || i > L.length)
-    {
-        return ERROR;
-    }
-    e = L.elem[i - 1];
-    for (int j = i - 1; j < L.length - 1; j++)
-    {
-        L.elem[j] = L.elem[j + 1];
-    }
-    L.length--;
-    return OK;
-    /********** End **********/
-}
-status ListTrabverse(SqList L)
-// 如果线性表L存在，依次显示线性表中的元素，每个元素间空一格，返回OK；
-//如果线性表L不存在，返回INFEASIBLE。
-{
-    /********** Begin *********/
-    if (L.elem == NULL)
-    {
-        return INFEASIBLE;
-    }
-    if (L.length == 0)
-    {
-        return ERROR;
-    }
-    else
-    {
-        for (int i = 0; i < L.length - 1; i++)
-        {
-            printf("%d ", L.elem[i]);
-        }
-        printf("%d", L.elem[L.length - 1]);
         return OK;
     }
+    else
+    {
+        return ERROR;
+    }
+
     /********** End **********/
+}
+status ListLength(LinkList L)
+// 如果线性表L存在，返回线性表L的长度，否则返回INFEASIBLE。
+{
+    // 请在这里补充代码，完成本关任务
+    /********** Begin *********/
+    if (L == NULL)
+    {
+        return INFEASIBLE;
+    }
+    LinkList p;
+    p = L->next;
+    int i = 0;
+    while (p)
+    {
+        i++;
+        p = p->next;
+    }
+    return i;
+
+    /********** End **********/
+}
+status GetElem(LinkList L, int i, ElemType &e)
+// 如果线性表L存在，获取线性表L的第i个元素，保存在e中，返回OK；如果i不合法，返回ERROR；如果线性表L不存在，返回INFEASIBLE。
+{
+    // 请在这里补充代码，完成本关任务
+    /********** Begin *********/
+    if (L == NULL)
+    {
+        return INFEASIBLE;
+    }
+    LinkList p;
+    p = L->next;
+    int j = 1;
+    while (p)
+    {
+        if (j == i)
+        {
+            e = p->data;
+            return OK;
+        }
+        j++;
+        p = p->next;
+    }
+    return ERROR;
+
+    /********** End **********/
+}
+status LocateElem(LinkList L, ElemType e)
+// 如果线性表L存在，查找元素e在线性表L中的位置序号；如果e不存在，返回ERROR；当线性表L不存在时，返回INFEASIBLE。
+{
+    // 请在这里补充代码，完成本关任务
+    /********** Begin *********/
+    if (L == NULL)
+    {
+        return INFEASIBLE;
+    }
+    LinkList p;
+    p = L->next;
+    int j = 1;
+    while (p)
+    {
+        if (p->data == e)
+        {
+            return j;
+        }
+        j++;
+        p = p->next;
+    }
+    return ERROR;
+
+    /********** End **********/
+}
+status PriorElem(LinkList L, ElemType e, ElemType &pre)
+// 如果线性表L存在，获取线性表L中元素e的前驱，保存在pre中，返回OK；如果没有前驱，返回ERROR；如果线性表L不存在，返回INFEASIBLE。
+{
+    // 请在这里补充代码，完成本关任务
+    /********** Begin *********/
+    if (L == NULL)
+    {
+        return INFEASIBLE;
+    }
+    LinkList p, q;
+    p = L;
+    q = p->next;
+    if (q == NULL)
+    {
+        return ERROR;
+    }
+    if (q->data == e)
+    {
+        return ERROR;
+    }
+    while (q)
+    {
+        if (q->data == e)
+        {
+            pre = p->data;
+            return OK;
+        }
+        p = p->next;
+        q = q->next;
+    }
+    return ERROR;
+    /********** End **********/
+}
+status NextElem(LinkList L, ElemType e, ElemType &next)
+// 如果线性表L存在，获取线性表L元素e的后继，保存在next中，返回OK；如果没有后继，返回ERROR；如果线性表L不存在，返回INFEASIBLE。
+{
+    // 请在这里补充代码，完成本关任务
+    /********** Begin *********/
+    if (L == NULL)
+    {
+        return INFEASIBLE;
+    }
+    LinkList p;
+    p = L->next;
+    if (p == NULL)
+    {
+        return ERROR;
+    }
+    while (p->next)
+    {
+        if (p->data == e)
+        {
+            next = p->next->data;
+            return OK;
+        }
+        p = p->next;
+    }
+    return ERROR;
+    /********** End **********/
+}
+status ListInsert(LinkList &L, int i, ElemType e)
+// 如果线性表L存在，将元素e插入到线性表L的第i个元素之前，返回OK；当插入位置不正确时，返回ERROR；如果线性表L不存在，返回INFEASIBLE。
+{
+    // 请在这里补充代码，完成本关任务
+    /********** Begin *********/
+    if (L == NULL)
+    {
+        return INFEASIBLE;
+    }
+    LinkList p;
+    p = L;
+    int j = 0;
+    while (p)
+    {
+        if (j == i - 1)
+        {
+            LinkList r;
+            r = (LinkList)malloc(sizeof(LNode));
+            r->data = e;
+            r->next = p->next;
+            p->next = r;
+            return OK;
+        }
+        j++;
+        p = p->next;
+    }
+    return ERROR;
+    /********** End **********/
+}
+status ListDelete(LinkList &L, int i, ElemType &e)
+// 如果线性表L存在，删除线性表L的第i个元素，并保存在e中，返回OK；当删除位置不正确时，返回ERROR；如果线性表L不存在，返回INFEASIBLE。
+{
+    // 请在这里补充代码，完成本关任务
+    /********** Begin *********/
+    if (L == NULL)
+    {
+        return INFEASIBLE;
+    }
+    int j = 0;
+    LinkList p = L;
+    while (p)
+    {
+        if (j == i - 1)
+        {
+            LinkList q = p->next;
+            p->next = q->next;
+            e = q->data;
+            free(q);
+            return OK;
+        }
+        j++;
+        p = p->next;
+    }
+    return ERROR;
+
+    /********** End **********/
+}
+status ListTraverse(LinkList L)
+// 如果线性表L存在，依次显示线性表中的元素，每个元素间空一格，返回OK；如果线性表L不存在，返回INFEASIBLE。
+{
+    // 请在这里补充代码，完成本关任务
+    /********** Begin *********/
+    if (L == NULL)
+    {
+        return INFEASIBLE;
+    }
+    LinkList q = L->next;
+    if (q == NULL)
+        return ERROR;
+    while (q)
+    {
+        printf("%d ", q->data);
+        q = q->next;
+    }
+    return OK;
+    /********** End **********/
+}
+status SaveList(LinkList L, char FileName[])
+// 如果线性表L存在，将线性表L的的元素写到FileName文件中，返回OK，否则返回INFEASIBLE。
+{
+    // 请在这里补充代码，完成本关任务
+    /********** Begin 1 *********/
+    if (L == NULL && L->next == NULL)
+    {
+        return INFEASIBLE;
+    }
+    FILE *r;
+    r = fopen(FileName, "w");
+    if (r == NULL)
+    {
+        return ERROR;
+    }
+    LinkList p = L->next;
+    while (p)
+    {
+        fprintf(r, "%d ", p->data);
+        p = p->next;
+    }
+    fclose(r);
+    return OK;
+    /********** End 1 **********/
+}
+
+status LoadList(LinkList &L, char FileName[])
+// 如果线性表L不为空，将FileName文件中的数据读入到线性表L中，返回OK，否则返回INFEASIBLE。
+{
+    // 请在这里补充代码，完成本关任务
+    /********** Begin 2 *********/
+
+    if (L->next != NULL || L == NULL)
+    {
+        return INFEASIBLE;
+    }
+    FILE *r;
+    r = fopen(FileName, "r");
+    if (r == NULL)
+    {
+        return ERROR;
+    }
+    L = (LinkList)malloc(sizeof(LNode));
+    LinkList tail = L;
+    tail->next = NULL;
+    int t;
+    while (fscanf(r, "%d", &t) != EOF && r != NULL)
+    {
+        LinkList p;
+        p = (LinkList)malloc(sizeof(LNode));
+        p->data = t;
+        p->next = tail->next;
+        tail->next = p;
+        tail = p;
+    }
+    tail->next = NULL;
+    fclose(r);
+    return OK;
+    /********** End 2 **********/
 }
 status AddList(LISTS &Lists, char ListName[])
 // 只需要在Lists中增加一个名称为ListName的空线性表，线性表数据由后台测试程序插入。
@@ -757,12 +790,7 @@ status AddList(LISTS &Lists, char ListName[])
     }
     Lists.length++;
     int i = 0;
-    while (ListName[i])
-    {
-        Lists.elem[Lists.length - 1].name[i] = ListName[i];
-        i++;
-    }
-    Lists.elem[Lists.length - 1].name[i] = '\0';
+    strcpy(Lists.elem[Lists.length - 1].name, ListName);
     InitList(Lists.elem[Lists.length - 1].L);
     return OK;
     /********** End **********/
@@ -841,55 +869,4 @@ status TrabverseList(LISTS List)
         printf("%d   %s\n", i + 1, List.elem[i].name);
     }
     return OK;
-}
-status SaveList(SqList L, char FileName[])
-// 如果线性表L存在，将线性表L的的元素写到FileName文件中，返回OK，否则返回INFEASIBLE。
-{
-    /********** Begin *********/
-    if (L.elem == NULL)
-    {
-        return INFEASIBLE;
-    }
-    FILE *r;
-    r = fopen(FileName, "w");
-    if (r == NULL)
-    {
-        return ERROR;
-    }
-    for (int i = 0; i < L.length; i++)
-    {
-        fprintf(r, "%d ", L.elem[i]);
-    }
-    fclose(r);
-    return OK;
-    /********** End **********/
-}
-status LoadList(SqList &L, char FileName[])
-// 如果线性表L不存在，将FileName文件中的数据读入到线性表L中，返回OK，否则返回INFEASIBLE。
-{
-    // 请在这里补充代码，完成本关任务
-    /********** Begin *********/
-    if (L.length != 0)
-    {
-        return INFEASIBLE;
-    }
-    FILE *r;
-    r = fopen(FileName, "r");
-    if (r == NULL)
-    {
-        return ERROR;
-    }
-    L.elem = (ElemType *)malloc(100);
-    L.length = 0;
-    L.listsize = 100;
-    int t, i = 0;
-    while (fscanf(r, "%d", &t) != EOF && r != NULL)
-    {
-        L.elem[i] = t;
-        i++;
-        L.length++;
-    }
-    fclose(r);
-    return OK;
-    /********** End **********/
 }
