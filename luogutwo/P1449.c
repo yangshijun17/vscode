@@ -1,9 +1,11 @@
 #include<stdio.h>
+#include<string.h>
 #include<stdlib.h>
 void reverse(char a[],int length);
+char Stack[100000];
 int main()
 {
-    char c,Stack[1000];
+    char c;
     int top = 0;
     scanf("%c", &c);
     while(c!='@')
@@ -13,16 +15,18 @@ int main()
         else
         {
             char count1[1000], count2[1000];
+            memset(count1, 0, sizeof(count1));
+            memset(count2, 0, sizeof(count2));
             top--;
             int cnt1=0, cnt2 = 0;
-            while(Stack[top-1]!='.')
+            while(Stack[top-1]!='.'&&top>0)
             {
                 count1[cnt1] = Stack[top - 1];
                 top--;
                 cnt1++;
             }
             top--;
-            while(Stack[top-1]!='.')
+            while(Stack[top-1]!='.'&&top>0)
             {
                 count2[cnt2] = Stack[top - 1];
                 top--;
@@ -30,29 +34,30 @@ int main()
             }
             reverse(count1, cnt1);
             reverse(count2, cnt2);
-            for (int i = 0; i < cnt1 && i < cnt2;i++)
+            int num1 = atoi(count1);
+            int num2 = atoi(count2);
+            if(c=='+')
             {
-                if(count1[i]+count2[i]-96>9)
-                {
-                    count1[i] = count1[i] + count2[i]-58;
-                    count1[i + 1] += 1;
-                    if(i==cnt1-1)
-                        cnt1++;
-                }
-                else
-                    count1[i] += count2[i] - 48;
+                num2 += num1;
             }
-            if(cnt2>cnt1)
+            else if(c=='-')
             {
-                for (int i = cnt1; i < cnt2;i++)
-                {
-                    count1[i] = count2[i];
-                }
-                cnt1 = cnt2;
+                num2 -=num1;
             }
-            for (int i = 0; i < cnt1;i++)
+            else if(c=='*')
             {
-                Stack[top] = count1[i];
+                num2 *= num1;
+            }
+            else
+            {
+                num2 /= num1;
+            }
+            
+            char num[10000];
+            sprintf(num, "%d", num2);
+            for (int k = 0; k < strlen(num);k++)
+            {
+                Stack[top] = num[k];
                 top++;
             }
             Stack[top] = '.';
