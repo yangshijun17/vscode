@@ -1,11 +1,13 @@
 #include<stdio.h>
+#include<math.h>
 int ans()
 {
     char ch, x,chh[10];
     int num,anss=0;
-    while(scanf("%c",&ch)!=-1)
+    while(1)
     {
-        if(ch==']')
+        scanf("%c", &ch);
+        if(ch==']'||ch=='\n')
             break;
         scanf("%s", chh);
         scanf("%d", &num);
@@ -25,7 +27,7 @@ int ans()
             anss -= num;
             scanf("%c", &x);
         }
-        if(x==']')
+        if(x==']'||x=='\n')
             break;
     }
     return anss;
