@@ -1201,4 +1201,4 @@ void PrintGraph(ALGraph G,void (*visit)(VertexType))
 void visit(VertexType v)
 {
     printf("%d %s ", v.key, v.others);
-}
+} 

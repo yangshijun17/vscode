@@ -2,12 +2,11 @@
 #include<math.h>
 int ans()
 {
-    char ch, x,chh[10];
+    char ch, x,chh[100];
     int num,anss=0;
-    while(1)
+    while(scanf("%c", &ch)==1&&ch!='\n')
     {
-        scanf("%c", &ch);
-        if(ch==']'||ch=='\n')
+        if(ch==']')
             break;
         scanf("%s", chh);
         scanf("%d", &num);

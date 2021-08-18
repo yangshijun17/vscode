@@ -1,44 +1,45 @@
-#include<stdio.h>
-int f[1000000],x[1000000],y[1000000],z[1000000];
-int find(int x)//该函数用来找到x的爸爸
+//字符串哈希的关键就在于构建一个相应的数字使其和原本的字符串一一对应，这里选择了一个合适的定位
+//即将'a'的ASCII值作为基底使得所有字母都与相应的数字对应对应，然后再选择一个合适的进位，将其
+//转化成长整数即可，进制要大于所有对应的数字，然后用一个整型数组将其存储就行
+//记得数组要开long long，否则有可能会出问题
+#include <stdio.h>
+#include <string.h>
+const long long B = 29; 
+long long hashf(char s[]) 
 {
-    if(f[x]==x)
-        return x;
-    else
-        return find(f[x]);
+   int tmp = 0;
+    for (int i = 0; i < strlen(s); i++) 
+        tmp = tmp * B + (long long)(s[i]-'a'+1);
+    return tmp;
 }
-void merge(int x,int y)
-{
-    f[find(y)] = find(x);//把两个人的爸爸变成一个
-}
-void findyx(int x,int y)
-{
-    if(find(x)==find(y))//两个人在同一个集合的条件就是两个人的爸爸是一个人
-    {
-        printf("Y\n");
-    }
-    else
-        printf("N\n");
-}
+
 int main()
 {
-    int n, m;
-    scanf("%d %d", &n, &m);
-    for (int i = 1; i <= m;i++)
+    int ans = 1,n;
+    long long a[10005];
+    char s[10005];
+    scanf("%d", &n);
+    for (int i = 0; i < n; i++)
     {
-        scanf("%d%d%d", &z[i], &x[i], &y[i]);
-        f[i] = i;
+        scanf("%s", s);
+        a[i] = hashf(s);
     }
-    for (int i = 1; i <= m;i++)
+    for (int i = 0; i < n; i++)
     {
-        if(z[i]==1)
+        for (int j = 0; j < n-i-1; j++)
         {
-            merge(x[i], y[i]);
-        }
-        else if(z[i]==2)
-        {
-            findyx(x[i], y[i]);
+            if (a[j+1] > a[j])
+            {
+                int t = a[j+1];
+                a[j+1] = a[j];
+                a[j] = t;
+            }
         }
     }
-    return 0;
+    for (int i = 1; i < n; i++)
+    {
+        if (a[i] != a[i - 1])
+            ans++;
+    }
+    printf("%d\n", ans);
 }
