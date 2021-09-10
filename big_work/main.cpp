@@ -1,6 +1,6 @@
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include<limits.h>
 #include <time.h>
 int boolnum;
 int clausnum;
@@ -15,19 +15,22 @@ typedef struct _cnf
     struct _cnf *next;
 } cnf;
 int readCNF(cnf *&CNF, char Filename[80]);
-int deleteCNF(cnf *&CNF);
+void deleteCNF(cnf *&CNF);
 void showCNF(cnf *CNF);
 int isOneClause(charanode *chara);
 int deleteClause(cnf *&CNF, cnf *&deleted);
 int deletechara(charanode *&head, charanode *&CNF);
 int iswithEmptyClause(cnf *CNF);
 int DPLL(cnf *&CNF, int value[]);
-void addClause(cnf *&CNF,charanode *boolnode);
-void copyclause(cnf *&CNF,cnf *&CNF2);
+void addClause(cnf *&CNF, charanode *boolnode);
+void copyclause(cnf *&CNF, cnf *CNF2);
+int savedata(int value[], char Filename[], double time);
 int main()
 {
     cnf *CNF = NULL;
     int opt = 1;
+    int *value;
+    clock_t start, finish;
     char Filename[80];
     while (opt)
     {
@@ -41,7 +44,7 @@ int main()
         printf("---------------------------------------------------- \n");
         printf("Please input your option[0-4]\n");
         scanf("%d", &opt);
-        switch (op)
+        switch (opt)
         {
         case 1:
         {
@@ -52,6 +55,8 @@ int main()
                 printf("the path of file is error!\n");
             else
                 printf("read the data from the CNF file successfully\n");
+            getchar();
+            getchar();
             break;
         }
         case 2:
@@ -65,6 +70,43 @@ int main()
                 printf("the clause in this file is as follows:\n");
                 showCNF(CNF);
             }
+            getchar();
+            getchar();
+            break;
+        }
+        case 3:
+        {
+            if (CNF == NULL)
+            {
+                printf("Please read the data first!\n");
+            }
+            else
+            {
+                value = (int *)malloc(sizeof(int) * (boolnum + 1));
+                for (int i = 1; i <= boolnum; i++)
+                    value[i] = 1;
+                start = clock();
+                int result = DPLL(CNF, value);
+                finish = clock();
+                printf("result: %d\n", result);
+                if (result)
+                {
+                    printf("the answer is as follows:\n");
+                    for (int i = 1; i <= boolnum; i++)
+                    {
+                        if (value[i])
+                            printf("%d ", i);
+                        else
+                            printf("-%d ", i);
+                    }
+                }
+                double time = (double)(finish - start) / CLOCKS_PER_SEC;
+                printf("\nruntime:%lf\n", time * 1000);
+                savedata(value, Filename, time);
+                printf("This file is saved with the same name of CNF\n");
+            }
+            getchar();
+            getchar();
             break;
         }
         case 0:
@@ -145,7 +187,7 @@ void showCNF(cnf *CNF) //½«Ê®×ÖÁ´±íÖÐµÄÄÚÈÝ´òÓ¡³öÀ´
 }
 int isOneClause(charanode *chara) //ÅÐ¶Ï¸Ã×Ó¾äÊÇ·ñÎªµ¥×Ó¾ä£¬ÊÇÔò·µ»Ø1£¬·ñÔò·µ»Ø0
 {
-    if (chara != NULL || chara->next == NULL)
+    if (chara != NULL && chara->next == NULL)
         return 1;
     return 0;
 }
@@ -163,7 +205,7 @@ int deleteClause(cnf *&CNF, cnf *&deleted) //É¾³ýÊ®×ÖÁ´±íÖÐµÄdeleted×Ó¾ä£¬²¢·µ»Ø
     {
         while (p && p->next != deleted)
             p = p->next;
-        p->next = p->next;
+        p->next = p->next->next;
         free(deleted);
         deleted = NULL;
         return 1;
@@ -194,7 +236,7 @@ int deletechara(charanode *&head, charanode *&deleted) //É¾³ýµ±Ç°×Ó¾äÖÐµÄÄ³¸öÎÄ×
 int iswithEmptyClause(cnf *CNF) //ÅÐ¶ÏÆäÊÇ·ñº¬ÓÐ¿Õ×Ó¾ä
 {
     cnf *p = CNF;
-    while (p)
+    while (p != NULL)
     {
         if (p->head == NULL)
             return 1;
@@ -202,31 +244,32 @@ int iswithEmptyClause(cnf *CNF) //ÅÐ¶ÏÆäÊÇ·ñº¬ÓÐ¿Õ×Ó¾ä
     }
     return 0;
 }
-void copyclause(cnf *&CNF,cnf *&CNF2)//¸Ãº¯Êý½«CNF2µÄÖµ¸³µ½CNF
+void copyclause(cnf *&CNF, cnf *CNF2) //¸Ãº¯Êý½«CNF2µÄÖµ¸³µ½CNF
 {
     cnf *cocnf, *cocnf2;
     charanode *boolnode1, *boolnode2;
     CNF = (cnf *)malloc(sizeof(cnf));
     CNF->head = (charanode *)malloc(sizeof(charanode));
     CNF->next = NULL;
-    CNF->head->next = NULL;//½«CNF½øÐÐ³õÊ¼»¯
-    for (cocnf = CNF, cocnf2 = CNF2;cocnf2;cocnf2=cocnf2->next,cocnf=cocnf->next)
-    {//Á½ÖØÑ­»·±éÀúÕû¸öÊ®×ÖÁ´±í
-        for (boolnode1 = cocnf->head, boolnode2 = cocnf2->head; boolnode2;boolnode1=boolnode1->next,boolnode2=boolnode2->next)
+    CNF->head->next = NULL; //½«CNF½øÐÐ³õÊ¼»¯
+    for (cocnf = CNF, cocnf2 = CNF2; cocnf2; cocnf2 = cocnf2->next, cocnf = cocnf->next)
+    { //Á½ÖØÑ­»·±éÀúÕû¸öÊ®×ÖÁ´±í
+        for (boolnode1 = cocnf->head, boolnode2 = cocnf2->head; boolnode2; boolnode1 = boolnode1->next, boolnode2 = boolnode2->next)
         {
             boolnode1->data = boolnode2->data;
             boolnode1->next = (charanode *)malloc(sizeof(charanode));
-            if(boolnode2->next==NULL)//ÌØÅÐÒ»ÏÂ£¬Èç¹û±»¿½±´µÄÎª×îºóÒ»¸ö×Ö½Ú£¬Ôò½«µ±Ç°µÄÖÃÎª¿Õ
+            boolnode1->next->next = NULL;
+            if (boolnode2->next == NULL) //ÌØÅÐÒ»ÏÂ£¬Èç¹û±»¿½±´µÄÎª×îºóÒ»¸ö×Ö½Ú£¬Ôò½«µ±Ç°µÄÖÃÎª¿Õ
             {
                 free(boolnode1->next);
                 boolnode1->next = NULL;
             }
         }
-        cocnf->next = (cnf *)malloc(sizeof(cnf));//È»ºó¼ÌÐø¿½±´ÏÂÒ»¸ö×Ó¾ä£¬Ê×ÏÈ¶ÔÏÂÒ»¸ö×Ó¾äµÄ½áµã½øÐÐÉùÃ÷
+        cocnf->next = (cnf *)malloc(sizeof(cnf)); //È»ºó¼ÌÐø¿½±´ÏÂÒ»¸ö×Ó¾ä£¬Ê×ÏÈ¶ÔÏÂÒ»¸ö×Ó¾äµÄ½áµã½øÐÐÉùÃ÷
         cocnf->next->head = (charanode *)malloc(sizeof(charanode));
         cocnf->next->head->next = NULL;
         cocnf->next->next = NULL;
-        if(cocnf2->next==NULL)//Í¬ÑùµÀÀíµÄÌØÅÐ
+        if (cocnf2->next == NULL) //Í¬ÑùµÀÀíµÄÌØÅÐ
         {
             free(cocnf->next->head);
             free(cocnf->next);
@@ -234,15 +277,15 @@ void copyclause(cnf *&CNF,cnf *&CNF2)//¸Ãº¯Êý½«CNF2µÄÖµ¸³µ½CNF
         }
     }
 }
-int DPLL(cnf *&CNF, int value[])//ÀûÓÃDPLLËã·¨À´½âÎöcnfÎÄ¼þ
+int DPLL(cnf *&CNF, int value[]) //ÀûÓÃDPLLËã·¨À´½âÎöcnfÎÄ¼þ
 {
     cnf *p, *q, *r;
-    p = CNF;
+    p = CNF,q=CNF;
     charanode *boolnode;
-    int *num, max, maxpos;//numÊý×éÓÃÀ´¼ÇÂ¼Ã¿¸öÎÄ×Ö³öÏÖµÄ´ÎÊý£¬´Ó¶øÔÚÆäÖÐÕÒµ½Ó¦¸Ã±»´¦ÀíµÄÄÇ¸öÎÄ×Ö
-    while (1)
+    int *num, max, maxpos; //numÊý×éÓÃÀ´¼ÇÂ¼Ã¿¸öÎÄ×Ö³öÏÖµÄ´ÎÊý£¬´Ó¶øÔÚÆäÖÐÕÒµ½Ó¦¸Ã±»´¦ÀíµÄÄÇ¸öÎÄ×Ö
+    while (p != NULL)
     {
-        while (p && isOneClause(p->head))
+        while (p && isOneClause(p->head) == 0)
             p = p->next;
         if (p)
         {
@@ -261,63 +304,127 @@ int DPLL(cnf *&CNF, int value[])//ÀûÓÃDPLLËã·¨À´½âÎöcnfÎÄ¼þ
                         deleteClause(CNF, q);
                         break;
                     }
-                    if(boolnode->data==-singlekey)
+                    if (boolnode->data == -singlekey)
                     {
                         deletechara(q->head, boolnode);
                         break;
                     }
                 }
             }
-            if(CNF==NULL)
+            if (CNF == NULL)
             {
                 return 1;
             }
-            else if(iswithEmptyClause(CNF))
+            else if (iswithEmptyClause(CNF))
             {
                 deleteCNF(CNF);
                 return 0;
             }
             p = CNF;
         }
-        if(p==NULL||isOneClause(p)==0)
-            break;
     }
-    num = (int *)malloc(sizeof(2 * boolnum + 2));
-    for (int i = 0; i < 2 * boolnum + 2;i++)
+    num = (int *)malloc(sizeof(int) * (2 * boolnum + 2));
+    for (int i = 0; i <= 2 * boolnum; i++)
         num[i] = 0;
-    for (p = CNF; p;p=p->next)
+    for (p = CNF; p; p = p->next)
     {
-        for (boolnode = p->head; boolnode;boolnode=boolnode->next)
-        if(boolnode->data>0)
-            num[boolnode->data]++;
-        else
-            num[boolnum - boolnode->data]++;
+        for (boolnode = p->head; boolnode; boolnode = boolnode->next)
+            if (boolnode->data > 0)
+                num[boolnode->data]++;
+            else
+                num[boolnum - boolnode->data]++;
     }
-    max = INT_MIN;
+    max = 0;
     maxpos = 0;
-    for (int i = 1; i <= boolnum;i++)
+    for (int i = 1; i <= boolnum; i++)
     {
-        if(max<num[i])
+        if (max < num[i])
         {
             max = num[i];
             maxpos = i;
         }
     }
-    if(maxpos==0)
-        for (int i = boolnum + 1; i <= 2 * boolnum;i++)
+    if (max == 0)
+        for (int i = boolnum + 1; i <= 2 * boolnum; i++)
         {
-            if(max<num[i])
+            if (max < num[i])
             {
                 max = num[i];
                 maxpos = -i;
             }
         }
     free(num);
-    p=(cnf*)malloc(sizeof(cnf));
+    p = (cnf *)malloc(sizeof(cnf));
+    p->head = (charanode *)malloc(sizeof(charanode));
     p->head->data = maxpos;
     p->head->next = NULL;
     p->next = NULL;
     q = NULL;
-    copyclause(q,cnf);
-    
+    copyclause(q, CNF);
+    if (p != NULL)
+    {
+        p->next = q;
+        q = p;
+    }
+    if (DPLL(q, value) == 1)
+        return 1;
+    deleteCNF(q);
+    p = (cnf *)malloc(sizeof(cnf));
+    p->head = (charanode *)malloc(sizeof(charanode));
+    p->head->data = -maxpos;
+    p->head->next = NULL;
+    p->next = NULL;
+    if (p != NULL)
+    {
+        p->next = CNF;
+        CNF = p;
+    }
+    int i = DPLL(CNF, value);
+    deleteCNF(CNF);
+    return i;
+}
+void deleteCNF(cnf *&CNF)
+{
+    cnf *p1, *p2;
+    charanode *q1, *q2;
+    for (p1 = CNF; p1 != NULL; p1 = p2)
+    {
+        p2 = p1->next;
+        for (q1 = p1->head; q1 != NULL; q1 = q2)
+        {
+            q2 = q1->next;
+            free(q1);
+        }
+        free(p1);
+    }
+    CNF = NULL;
+}
+int savedata(int value[], char Filename[], double time)
+{
+    FILE *fp;
+    for (int i = 0; Filename[i] != '\0'; i++)
+    {
+        if (Filename[i] == '.' && Filename[i + 4] == '\0')
+        {
+            Filename[i + 1] = 'a';
+            Filename[i + 2] = 'n';
+            Filename[i + 3] = 's';
+            break;
+        }
+    }
+    fp = fopen(Filename, "w");
+    if (fp == NULL)
+    {
+        printf("can't open this file!\n");
+        return 0;
+    }
+    for (int i = 1; i <= boolnum; i++)
+    {
+        if (value[i])
+            fprintf(fp, "%d ", i);
+        else
+            fprintf(fp, "-%d", i);
+    }
+    fprintf(fp, "\nruntime: \n%lfs", time * 1000);
+    return 1;
 }
