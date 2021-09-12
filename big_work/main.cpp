@@ -4,6 +4,7 @@
 #include <time.h>
 int boolnum;
 int clausnum;
+int *flag;
 typedef struct _charanode
 {
     int data;
@@ -34,7 +35,7 @@ int main()
     char Filename[80];
     while (opt)
     {
-        system("cls");
+        //system("cls");
         printf("\n\n");
         printf("                    Menu Of options   \n");
         printf("-----------------------------------------------------\n");
@@ -280,9 +281,10 @@ void copyclause(cnf *&CNF, cnf *CNF2) //该函数将CNF2的值赋到CNF
 int DPLL(cnf *&CNF, int value[]) //利用DPLL算法来解析cnf文件
 {
     cnf *p, *q, *r;
-    p = CNF,q=CNF;
+    p = CNF, q = CNF;
     charanode *boolnode;
     int *num, max, maxpos; //num数组用来记录每个文字出现的次数，从而在其中找到应该被处理的那个文字
+    flag = (int *)malloc(sizeof(int) * (boolnum + 2));
     while (p != NULL)
     {
         while (p && isOneClause(p->head) == 0)
@@ -297,8 +299,21 @@ int DPLL(cnf *&CNF, int value[]) //利用DPLL算法来解析cnf文件
             for (q = CNF; q; q = r)
             {
                 r = q->next;
+                for (int i = 0; i <= boolnum; i++)
+                {
+                    flag[i] = 0;
+                }
                 for (boolnode = q->head; boolnode; boolnode = boolnode->next)
                 {
+                    if (flag[abs(boolnode->data)] != 2)
+                    {
+                        flag[abs(boolnode->data)]++;
+                    }
+                    else
+                    {
+                        deleteClause(CNF, q);
+                        break;
+                    }
                     if (boolnode->data == singlekey)
                     {
                         deleteClause(CNF, q);
@@ -423,8 +438,9 @@ int savedata(int value[], char Filename[], double time)
         if (value[i])
             fprintf(fp, "%d ", i);
         else
-            fprintf(fp, "-%d", i);
+            fprintf(fp, "-%d ", i);
     }
     fprintf(fp, "\nruntime: \n%lfs", time * 1000);
+    fclose(fp);
     return 1;
 }
