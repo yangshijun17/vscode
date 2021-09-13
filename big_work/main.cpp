@@ -1,10 +1,12 @@
-#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 int boolnum;
 int clausnum;
-int *flag;
+int sudoku[10][10];
+int *firstline;
+int shift[10] = {0, 3, 6, 1, 4, 7, 2, 5, 8};
 typedef struct _charanode
 {
     int data;
@@ -23,9 +25,12 @@ int deleteClause(cnf *&CNF, cnf *&deleted);
 int deletechara(charanode *&head, charanode *&CNF);
 int iswithEmptyClause(cnf *CNF);
 int DPLL(cnf *&CNF, int value[]);
-void addClause(cnf *&CNF, charanode *boolnode);
+void addClause(cnf *CNF,cnf *&root);
 void copyclause(cnf *&CNF, cnf *CNF2);
 int savedata(int value[], char Filename[], double time);
+void createsudoku();
+void dfs();
+int solveSudoku();
 int main()
 {
     cnf *CNF = NULL;
@@ -108,6 +113,20 @@ int main()
             }
             getchar();
             getchar();
+            break;
+        }
+        case 4:
+        {
+            createsudoku();
+            printf("The sudoku chess is created successfully!\n");
+            printf("The whole chess is as follows:\n");
+            for (int i = 0; i < 9; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                    printf("%d ", sudoku[i][j]);
+                printf("\n");
+            }
+            solveSudoku();
             break;
         }
         case 0:
@@ -284,7 +303,6 @@ int DPLL(cnf *&CNF, int value[]) //利用DPLL算法来解析cnf文件
     p = CNF, q = CNF;
     charanode *boolnode;
     int *num, max, maxpos; //num数组用来记录每个文字出现的次数，从而在其中找到应该被处理的那个文字
-    flag = (int *)malloc(sizeof(int) * (boolnum + 2));
     while (p != NULL)
     {
         while (p && isOneClause(p->head) == 0)
@@ -299,21 +317,8 @@ int DPLL(cnf *&CNF, int value[]) //利用DPLL算法来解析cnf文件
             for (q = CNF; q; q = r)
             {
                 r = q->next;
-                for (int i = 0; i <= boolnum; i++)
-                {
-                    flag[i] = 0;
-                }
                 for (boolnode = q->head; boolnode; boolnode = boolnode->next)
                 {
-                    if (flag[abs(boolnode->data)] != 2)
-                    {
-                        flag[abs(boolnode->data)]++;
-                    }
-                    else
-                    {
-                        deleteClause(CNF, q);
-                        break;
-                    }
                     if (boolnode->data == singlekey)
                     {
                         deleteClause(CNF, q);
@@ -438,9 +443,107 @@ int savedata(int value[], char Filename[], double time)
         if (value[i])
             fprintf(fp, "%d ", i);
         else
-            fprintf(fp, "-%d ", i);
+            fprintf(fp, "-%d", i);
     }
     fprintf(fp, "\nruntime: \n%lfs", time * 1000);
-    fclose(fp);
     return 1;
+}
+//以下为关于数独游戏的代码
+//该函数用来创建一个数独棋盘
+void createsudoku()
+{
+    firstline = (int *)malloc(sizeof(int) * 10);
+    dfs();//随机生成第一排的全排列
+    memcpy(sudoku[0], firstline, sizeof(int) * 9);
+    for (int i = 1; i < 9; i++)
+    {
+        for (int j = 0; j < 9; j++)
+        {
+            sudoku[i][j] = firstline[(j + shift[i]) % 9];
+            //将第一排依次轮换拷贝得到完整的数独终局
+        }
+    }
+    free(firstline);
+    firstline = NULL;
+    for (int i = 0; i < rand() % 10 + 40;i++)
+    {
+        int x, y;
+        x = rand() % 9, y = rand() % 9;
+        sudoku[x][y] = 0;
+    }//随机挖掉40到49个空
+}
+void dfs()
+{
+    int a[10];
+    for (int i = 1; i <= 9; i++)
+        a[i] = i;
+    int n = 9;
+    int top = 0;
+    for (int i = 1; i <= 9; i++)
+    {
+        int x = 1 + rand() % n;
+        firstline[top++] = a[x];
+        int temp = a[x];
+        a[x] = a[n];
+        a[n] = temp;
+        n--;
+    }
+    return;
+}
+//下面的函数用来解数独游戏
+int solveSudoku()
+{
+    cnf *Sudoku = NULL,*clausep=NULL;
+    charanode *BoolNode = NULL;
+    int size = 9,size2=81;
+    int i, j, k;
+    for (i = 0; i < size;i++)
+    {
+        for (j = 0; j < size;j++)
+        {
+            if(sudoku[i][j]!=0)
+            {
+                clausep = (cnf *)malloc(sizeof(cnf));
+                clausep->head = (charanode *)malloc(sizeof(charanode));
+                clausep->head->next = NULL;
+                clausep->next = NULL;
+                clausep->head->data = i * size2 + j * size + sudoku[i][j];
+                addClause(clausep, Sudoku);
+            }
+        }
+    }
+    for (i = 0; i < size;i++)
+    {
+        for (j = 0; j < size;j++)
+        {
+            clausep = (cnf *)malloc(sizeof(cnf));
+            clausep->head = (charanode *)malloc(sizeof(charanode));
+            clausep->head->next = NULL;
+            clausep->next = NULL;
+            BoolNode = clausep->head;
+            for (k = 0; k < size; k++)
+            {
+                BoolNode->data = i * size2 + k * size + j + 1;
+                BoolNode->next = (charanode *)malloc(sizeof(charanode));
+                if(k==size-1)
+                {
+                    BoolNode->next = NULL;
+                    break;
+                }
+                BoolNode = BoolNode->next;
+            }
+            addClause(clausep, Sudoku);
+            
+        }
+    }
+
+}
+void addClause(cnf *CNF,cnf *&root)
+{
+    if(CNF!=NULL)
+    {
+        CNF->next = root;
+        root = CNF;
+        return;
+    }
 }
