@@ -512,6 +512,7 @@ int solveSudoku()
             }
         }
     }
+    //下面的循环用来表示行约束
     for (i = 0; i < size;i++)
     {
         for (j = 0; j < size;j++)
@@ -533,10 +534,85 @@ int solveSudoku()
                 BoolNode = BoolNode->next;
             }
             addClause(clausep, Sudoku);
-            
         }
     }
-
+    for (i = 0; i < size;i++)
+    {
+        for (j = 0; j < size;j++)
+        {
+            for (k = 0; k < size;k++)
+            {
+                if(k==i)
+                    continue;
+                clausep = (cnf *)malloc(sizeof(cnf));
+                clausep->head = (charanode *)malloc(sizeof(charanode));
+                clausep->head->data = -(i * size2 + i * size + j + 1);
+                clausep->head->next = (charanode *)malloc(sizeof(charanode));
+                clausep->head->next->data = -(i * size2 + k * size + j + 1);
+                clausep->head->next->next = NULL;
+                clausep->next = NULL;
+                addClause(clausep,Sudoku);
+            }
+        }
+    }
+    //到这里行约束就结束了
+     for (i = 0; i < size;i++)
+    {
+        for (j = 0; j < size;j++)
+        {
+            clausep = (cnf *)malloc(sizeof(cnf));
+            clausep->head = (charanode *)malloc(sizeof(charanode));
+            clausep->head->next = NULL;
+            clausep->next = NULL;
+            BoolNode = clausep->head;
+            for (k = 0; k < size; k++)
+            {
+                BoolNode->data = k * size2 + i * size + j + 1;
+                BoolNode->next = (charanode *)malloc(sizeof(charanode));
+                if(k==size-1)
+                {
+                    BoolNode->next = NULL;
+                    break;
+                }
+                BoolNode = BoolNode->next;
+            }
+            addClause(clausep, Sudoku);
+        }
+    }
+    for (i = 0; i < size;i++)
+    {
+        for (j = 0; j < size;j++)
+        {
+            for (k = 0; k < size;k++)
+            {
+                if(k==i)
+                    continue;
+                clausep = (cnf *)malloc(sizeof(cnf));
+                clausep->head = (charanode *)malloc(sizeof(charanode));
+                clausep->head->data = -(i * size2 + i * size + j + 1);
+                clausep->head->next = (charanode *)malloc(sizeof(charanode));
+                clausep->head->next->data = -(k * size2 + i * size + j + 1);
+                clausep->head->next->next = NULL;
+                clausep->next = NULL;
+                addClause(clausep,Sudoku);
+            }
+        }
+    }
+    //列约束的部分在此结束
+    //下面加入3*3部分的约束
+    
+    cnf *p;
+    charanode *q;
+    p = Sudoku;
+    for (; p;p=p->next)
+    {
+        q = p->head;
+        for (; q;q=q->next)
+        {
+            printf("%d ", q->data);
+        }
+        printf("\n");
+    }
 }
 void addClause(cnf *CNF,cnf *&root)
 {
