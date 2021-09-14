@@ -25,7 +25,7 @@ int deleteClause(cnf *&CNF, cnf *&deleted);
 int deletechara(charanode *&head, charanode *&CNF);
 int iswithEmptyClause(cnf *CNF);
 int DPLL(cnf *&CNF, int value[]);
-void addClause(cnf *CNF,cnf *&root);
+void addClause(cnf *CNF, cnf *&root);
 void copyclause(cnf *&CNF, cnf *CNF2);
 int savedata(int value[], char Filename[], double time);
 void createsudoku();
@@ -126,7 +126,24 @@ int main()
                     printf("%d ", sudoku[i][j]);
                 printf("\n");
             }
-            solveSudoku();
+            if (solveSudoku())
+            {
+                printf("the answer is as follows:\n");
+                getchar();
+                getchar();
+                for (int i = 0; i < 9; i++)
+                {
+                    for (int j = 0; j < 9; j++)
+                        printf("%d ", sudoku[i][j]);
+                    printf("\n");
+                }
+            }
+            else
+            {
+                printf("error!");
+            }
+            getchar();
+            getchar();
             break;
         }
         case 0:
@@ -453,7 +470,7 @@ int savedata(int value[], char Filename[], double time)
 void createsudoku()
 {
     firstline = (int *)malloc(sizeof(int) * 10);
-    dfs();//随机生成第一排的全排列
+    dfs(); //随机生成第一排的全排列
     memcpy(sudoku[0], firstline, sizeof(int) * 9);
     for (int i = 1; i < 9; i++)
     {
@@ -465,12 +482,12 @@ void createsudoku()
     }
     free(firstline);
     firstline = NULL;
-    for (int i = 0; i < rand() % 10 + 40;i++)
+    for (int i = 0; i < rand() % 10 + 40; i++)
     {
         int x, y;
         x = rand() % 9, y = rand() % 9;
         sudoku[x][y] = 0;
-    }//随机挖掉40到49个空
+    } //随机挖掉40到49个空
 }
 void dfs()
 {
@@ -493,29 +510,52 @@ void dfs()
 //下面的函数用来解数独游戏
 int solveSudoku()
 {
-    cnf *Sudoku = NULL,*clausep=NULL;
+    cnf *Sudoku = NULL, *clausep = NULL;
     charanode *BoolNode = NULL;
-    int size = 9,size2=81;
+    int size = 9, size2 = 81;
     int i, j, k;
-    for (i = 0; i < size;i++)
-    {
-        for (j = 0; j < size;j++)
-        {
-            if(sudoku[i][j]!=0)
-            {
-                clausep = (cnf *)malloc(sizeof(cnf));
-                clausep->head = (charanode *)malloc(sizeof(charanode));
-                clausep->head->next = NULL;
-                clausep->next = NULL;
-                clausep->head->data = i * size2 + j * size + sudoku[i][j];
-                addClause(clausep, Sudoku);
-            }
-        }
-    }
+    //下面的循环用来加入基本约束
+    // for (i = 0; i < size; i++)
+    // {
+    //     for (j = 0; j < size; j++)
+    //     {
+    //         clausep = (cnf *)malloc(sizeof(cnf));
+    //         clausep->head = (charanode *)malloc(sizeof(charanode));
+    //         clausep->next = NULL;
+    //         clausep->head->next = NULL;
+    //         BoolNode = clausep->head;
+    //         for (k = 1; k <= size; k++)
+    //         {
+    //             BoolNode->data = i * size2 + j * size + k;
+    //             BoolNode->next = (charanode *)malloc(sizeof(charanode));
+    //             if (k == size)
+    //             {
+    //                 BoolNode->next = NULL;
+    //                 break;
+    //             }
+    //             BoolNode = BoolNode->next;
+    //         }
+    //         addClause(clausep, Sudoku);
+    //         for (k = 1; k <= size; k++)
+    //         {
+    //             for (int t = k + 1; t <= size; t++)
+    //             {
+    //                 clausep = (cnf *)malloc(sizeof(cnf));
+    //                 clausep->head = (charanode *)malloc(sizeof(charanode));
+    //                 clausep->head->data = -(i * size2 + j * size + k);
+    //                 clausep->head->next = (charanode *)malloc(sizeof(charanode));
+    //                 clausep->head->next->data = -(i * size2 + j * size + t);
+    //                 clausep->next = NULL;
+    //                 clausep->head->next->next = NULL;
+    //                 addClause(clausep, Sudoku);
+    //             }
+    //         }
+    //     }
+    // }
     //下面的循环用来表示行约束
-    for (i = 0; i < size;i++)
+    for (i = 0; i < size; i++)
     {
-        for (j = 0; j < size;j++)
+        for (j = 0; j < size; j++)
         {
             clausep = (cnf *)malloc(sizeof(cnf));
             clausep->head = (charanode *)malloc(sizeof(charanode));
@@ -526,7 +566,7 @@ int solveSudoku()
             {
                 BoolNode->data = i * size2 + k * size + j + 1;
                 BoolNode->next = (charanode *)malloc(sizeof(charanode));
-                if(k==size-1)
+                if (k == size - 1)
                 {
                     BoolNode->next = NULL;
                     break;
@@ -536,29 +576,28 @@ int solveSudoku()
             addClause(clausep, Sudoku);
         }
     }
-    for (i = 0; i < size;i++)
+    for (i = 0; i < size; i++)
     {
-        for (j = 0; j < size;j++)
+        for (j = 0; j < size; j++)
         {
-            for (k = 0; k < size;k++)
-            {
-                if(k==i)
-                    continue;
-                clausep = (cnf *)malloc(sizeof(cnf));
-                clausep->head = (charanode *)malloc(sizeof(charanode));
-                clausep->head->data = -(i * size2 + i * size + j + 1);
-                clausep->head->next = (charanode *)malloc(sizeof(charanode));
-                clausep->head->next->data = -(i * size2 + k * size + j + 1);
-                clausep->head->next->next = NULL;
-                clausep->next = NULL;
-                addClause(clausep,Sudoku);
-            }
+            for (int t = 0; t < size; t++)
+                for (k = t + 1; k < size; k++)
+                {
+                    clausep = (cnf *)malloc(sizeof(cnf));
+                    clausep->head = (charanode *)malloc(sizeof(charanode));
+                    clausep->head->data = -(i * size2 + t * size + j + 1);
+                    clausep->head->next = (charanode *)malloc(sizeof(charanode));
+                    clausep->head->next->data = -(i * size2 + k * size + j + 1);
+                    clausep->head->next->next = NULL;
+                    clausep->next = NULL;
+                    addClause(clausep, Sudoku);
+                }
         }
     }
     //到这里行约束就结束了
-     for (i = 0; i < size;i++)
+    for (i = 0; i < size; i++)
     {
-        for (j = 0; j < size;j++)
+        for (j = 0; j < size; j++)
         {
             clausep = (cnf *)malloc(sizeof(cnf));
             clausep->head = (charanode *)malloc(sizeof(charanode));
@@ -569,7 +608,7 @@ int solveSudoku()
             {
                 BoolNode->data = k * size2 + i * size + j + 1;
                 BoolNode->next = (charanode *)malloc(sizeof(charanode));
-                if(k==size-1)
+                if (k == size - 1)
                 {
                     BoolNode->next = NULL;
                     break;
@@ -579,44 +618,106 @@ int solveSudoku()
             addClause(clausep, Sudoku);
         }
     }
-    for (i = 0; i < size;i++)
+    for (i = 0; i < size; i++)
     {
-        for (j = 0; j < size;j++)
+        for (j = 0; j < size; j++)
         {
-            for (k = 0; k < size;k++)
-            {
-                if(k==i)
-                    continue;
-                clausep = (cnf *)malloc(sizeof(cnf));
-                clausep->head = (charanode *)malloc(sizeof(charanode));
-                clausep->head->data = -(i * size2 + i * size + j + 1);
-                clausep->head->next = (charanode *)malloc(sizeof(charanode));
-                clausep->head->next->data = -(k * size2 + i * size + j + 1);
-                clausep->head->next->next = NULL;
-                clausep->next = NULL;
-                addClause(clausep,Sudoku);
-            }
+            for (int t = 0; t < size; t++)
+                for (k = t + 1; k < size; k++)
+                {
+                    clausep = (cnf *)malloc(sizeof(cnf));
+                    clausep->head = (charanode *)malloc(sizeof(charanode));
+                    clausep->head->data = -(t * size2 + i * size + j + 1);
+                    clausep->head->next = (charanode *)malloc(sizeof(charanode));
+                    clausep->head->next->data = -(k * size2 + i * size + j + 1);
+                    clausep->head->next->next = NULL;
+                    clausep->next = NULL;
+                    addClause(clausep, Sudoku);
+                }
         }
     }
     //列约束的部分在此结束
     //下面加入3*3部分的约束
-    
-    cnf *p;
-    charanode *q;
-    p = Sudoku;
-    for (; p;p=p->next)
+    for (k = 0; k < 3; k++)
+        for (int t = 0; t < 3; t++)
+            for (int count = 1; count <= 9; count++)
+            {
+                clausep = (cnf *)malloc(sizeof(cnf));
+                clausep->head = (charanode *)malloc(sizeof(charanode));
+                clausep->head->next = NULL;
+                clausep->next = NULL;
+                BoolNode = clausep->head;
+                for (int i = 3 * k + 1; i <= 3 * k + 3; i++)
+                {
+                    for (int j = 3 * t + 1; j <= 3 * t + 3; j++)
+                    {
+                        BoolNode->data = (i - 1) * size2 + (j - 1) * size + count;
+                        BoolNode->next = (charanode *)malloc(sizeof(charanode));
+                        if (i == 3 * k + 3 && j == 3 * t + 3)
+                        {
+                            BoolNode->next = NULL;
+                            break;
+                        }
+                        BoolNode = BoolNode->next;
+                    }
+                }
+                addClause(clausep, Sudoku);
+                
+            }
+    //下面的循环用来将数独中已有的位置添加进去
+    for (i = 0; i < size; i++)
     {
-        q = p->head;
-        for (; q;q=q->next)
+        for (j = 0; j < size; j++)
         {
-            printf("%d ", q->data);
+            if (sudoku[i][j] != 0)
+            {
+                clausep = (cnf *)malloc(sizeof(cnf));
+                clausep->head = (charanode *)malloc(sizeof(charanode));
+                clausep->head->next = NULL;
+                clausep->next = NULL;
+                clausep->head->data = i * size2 + j * size + sudoku[i][j];
+                addClause(clausep, Sudoku);
+            }
         }
-        printf("\n");
+    }
+    //下面用DPLL算法求解数独
+    int *ans;
+    boolnum = 729;
+    ans = (int *)malloc(sizeof(int) * 750);
+    for (int i = 0; i <= boolnum; i++)
+        ans[i] = 1;
+    if (DPLL(Sudoku, ans))
+    {
+        for (int i = 1; i <= boolnum; i++)
+        {
+            printf("%d ", ans[i]);
+        }
+        for (int i = 1; i <= boolnum; i++)
+        {
+            if (ans[i] == 1)
+            {
+                int data = i % 9;
+                if (data == 0)
+                    data = 9;
+                int x, y;
+                x = (i - data) / 81;
+                y = (i - 81 * x - data) / 9;
+                sudoku[x][y] = data;
+            }
+        }
+        free(ans);
+        return 1;
+    }
+    else
+    {
+        free(ans);
+        deleteCNF(Sudoku);
+        return 0;
     }
 }
-void addClause(cnf *CNF,cnf *&root)
+void addClause(cnf *CNF, cnf *&root)
 {
-    if(CNF!=NULL)
+    if (CNF != NULL)
     {
         CNF->next = root;
         root = CNF;
