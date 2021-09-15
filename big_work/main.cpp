@@ -3,8 +3,8 @@
 #include <string.h>
 #include <time.h>
 int boolnum;
-int clausnum;
-int sudoku[10][10];
+int clausnum,firstdelx,firstdely;
+// int sudoku[9][9];
 int *firstline;
 int shift[10] = {0, 3, 6, 1, 4, 7, 2, 5, 8};
 typedef struct _charanode
@@ -25,12 +25,15 @@ int deleteClause(cnf *&CNF, cnf *&deleted);
 int deletechara(charanode *&head, charanode *&CNF);
 int iswithEmptyClause(cnf *CNF);
 int DPLL(cnf *&CNF, int value[]);
+int DPLLquicker(cnf *&CNF, int value[]);
 void addClause(cnf *CNF, cnf *&root);
 void copyclause(cnf *&CNF, cnf *CNF2);
 int savedata(int value[], char Filename[], double time);
-void createsudoku();
+void createsudoku(int sudoku[][9]);
 void dfs();
-int solveSudoku();
+int solveSudoku(int sudoku[][9]);
+void dighole(int sudoku[][9], int n);
+int check(int sudoku[][9], int x, int y);
 int main()
 {
     cnf *CNF = NULL;
@@ -117,7 +120,8 @@ int main()
         }
         case 4:
         {
-            createsudoku();
+            int sudoku[9][9];
+            createsudoku(sudoku);
             printf("The sudoku chess is created successfully!\n");
             printf("The whole chess is as follows:\n");
             for (int i = 0; i < 9; i++)
@@ -126,7 +130,7 @@ int main()
                     printf("%d ", sudoku[i][j]);
                 printf("\n");
             }
-            if (solveSudoku())
+            if (solveSudoku(sudoku))
             {
                 printf("the answer is as follows:\n");
                 getchar();
@@ -467,7 +471,7 @@ int savedata(int value[], char Filename[], double time)
 }
 //以下为关于数独游戏的代码
 //该函数用来创建一个数独棋盘
-void createsudoku()
+void createsudoku(int sudoku[][9])
 {
     firstline = (int *)malloc(sizeof(int) * 10);
     dfs(); //随机生成第一排的全排列
@@ -482,12 +486,10 @@ void createsudoku()
     }
     free(firstline);
     firstline = NULL;
-    for (int i = 0; i < rand() % 10 + 40; i++)
-    {
-        int x, y;
-        x = rand() % 9, y = rand() % 9;
-        sudoku[x][y] = 0;
-    } //随机挖掉40到49个空
+    int n;
+    printf("please input a number!");
+    scanf("%d", &n);
+    dighole(sudoku, n);
 }
 void dfs()
 {
@@ -508,7 +510,7 @@ void dfs()
     return;
 }
 //下面的函数用来解数独游戏
-int solveSudoku()
+int solveSudoku(int sudoku[][9])
 {
     cnf *Sudoku = NULL, *clausep = NULL;
     charanode *BoolNode = NULL;
@@ -671,15 +673,15 @@ int solveSudoku()
             for (int count = 1; count <= 9; count++)
             {
                 for (int l = 1; l <= 3; l++)
-                for (int y = 1; y <= 3; y++)
-                    for (i = 3 * k + l; i <= 3 * k + 3; i++)
-                    {
+                    for (int y = 1; y <= 3; y++)
+                        for (i = 3 * k + l; i <= 3 * k + 3; i++)
+                        {
                             for (j = 3 * t + y; j <= 3 * t + 3; j++)
                             {
                                 if (i == 3 * k + l && j == 3 * t + y)
                                     continue;
                                 clausep = (cnf *)malloc(sizeof(cnf));
-                                clausep->head = (charanode*)malloc(sizeof(charanode));
+                                clausep->head = (charanode *)malloc(sizeof(charanode));
                                 clausep->head->data = -((3 * k + l - 1) * size2 + (3 * t + y - 1) * size + count);
                                 clausep->head->next = (charanode *)malloc(sizeof(charanode));
                                 clausep->head->next->data = -((i - 1) * size2 + (j - 1) * size + count);
@@ -687,7 +689,7 @@ int solveSudoku()
                                 clausep->head->next->next = NULL;
                                 addClause(clausep, Sudoku);
                             }
-                    }
+                        }
             }
         }
     }
@@ -746,4 +748,87 @@ void addClause(cnf *CNF, cnf *&root)
         root = CNF;
         return;
     }
+}
+void dighole(int sudoku[][9], int n)
+{
+    int count = 0;
+    int x, y;
+    firstdelx = rand() % 9;
+    firstdely = rand() % 9;
+    sudoku[firstdelx][firstdely] = 0;
+    n--;
+    while(count<n)
+    {
+        x = rand()%9;
+        y = rand()%9;
+        if(check(sudoku,x,y))
+        {
+            sudoku[x][y] = 0;
+            count++;
+        }
+    }
+    return;
+}
+int check(int sudoku[][9], int x, int y)
+{
+    
+    int termsuduku[9][9];
+    for (int i = 1; i <= 9; i++)
+    {
+        for (int ii = 0; ii < 9; ii++)
+        for (int j = 0; j < 9; j++)
+            termsuduku[ii][j] = sudoku[ii][j];
+        int key = termsuduku[x][y], flag = 0;
+        if (i != key)
+        {
+            for (int j = 0; j < 9; j++)
+            {
+                if (j == x)
+                    continue;
+                if (termsuduku[j][y] == key)
+                {
+                    flag = 1;
+                    break;
+                }
+            }
+            if (flag)
+                continue;
+            flag = 0;
+            for (int j = 0; j < 9; j++)
+            {
+                if (j == y)
+                    continue;
+                if (termsuduku[x][j] == key)
+                {
+                    flag = 1;
+                    break;
+                }
+            }
+            if (flag)
+                continue;
+            flag = 0;
+            int xx = x / 3, yy = y / 3;
+            for (int ii = xx * 3; ii < xx * 3 + 3; ii++)
+                for (int jj = yy * 3; jj < yy * 3 + 3; jj++)
+                {
+                    if (ii == x && jj == y)
+                        continue;
+                    if (termsuduku[ii][jj] == key)
+                    {
+                        flag = 1;
+                        break;
+                    }
+                }
+            if(flag)
+            {
+                continue;
+            }
+            termsuduku[x][y] = i;
+            if (solveSudoku(termsuduku))
+            {
+                return 0;
+            }
+        }
+    }
+    return 1;
 }
