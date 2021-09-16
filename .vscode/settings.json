@@ -26,5 +26,8 @@
         "P5318.C": "cpp"
     },
     "C_Cpp.errorSquiggles": "Enabled",
+    "autodocblocker.author": "",
+    "fileheader.Author": "ysj",
+    "fileheader.LastModifiedBy": "ysj"
     
 }

@@ -1,340 +1,910 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
+int boolCount;  //布尔变元数量
+int clauseCount;  //子句数量
+char fileName[100]; //文件名
+
+//十字链表结构体
+typedef struct SATNode{
+	int data;  //数据域
+	SATNode* next;
+}SATNode;
+typedef struct SATList {
+	SATNode* head;  //表头
+	SATList* next;
+}SATList;
+
+//函数声明
+int ReadFile(SATList*& cnf);
+void destroyClause(SATList*& cnf);
+int isUnitClause(SATNode* cnf);
+int evaluateClause(SATNode* cnf, int v[]);
+int removeClause(SATList*& cnf, SATList*& root);
+int removeNode(SATNode*& cnf, SATNode*& head);
+int addClause(SATList* cnf, SATList*& root);
+int emptyClause(SATList* cnf);
+int DPLL(SATList*& cnf, int value[]);
+void CopyClause(SATList*& a, SATList* b);
+int WriteFile(int result, double time, int value[]);
+void CreateBinary(int size);
+int SolvePuzzle(int chess[], int size);
+
+//函数定义
 /*
- * Program to implement a SAT solver using the DPLL algorithm with unit
- * propagation Sukrut Rao CS15BTECH11036
+ * 函数名称: main
+ * 接受参数: void
+ * 函数功能: 主函数
+ * 返回值: int
  */
-
-#include <algorithm>
-#include <cmath>
-#include <cstdint>
-#include <iostream>
-#include <string>
-#include <vector>
-
-using namespace std;
-
-/*
- * enum for different types of return flags defined
- */
-enum Cat {
-  satisfied,   // when a satisfying assignment has been found
-  unsatisfied, // when no satisfying assignment has been found after
-               // exhaustively searching
-  normal,   // when no satisfying assignment has been found till now, and DPLL()
-            // has exited normally
-  completed // when the DPLL algorithm has completed execution
-};
-
-/*
- * class to represent a boolean formula
- */
-class Formula {
-public:
-  // a vector that stores the value assigned to each variable, where
-  // -1 - unassigned
-  // 0 - true
-  // 1 - false
-  vector<int> literals;
-  vector<int> literal_frequency; // vector to store the number of occurrences of
-                                 // each literal
-
-  // vector to store the difference in number of occurrences with
-  // positive and negative polarity of each literal
-  vector<int> literal_polarity;
-
-  // vector to store the clauses
-  // for each clauses, if the variable n is of positive polarity, then 2n is
-  // stored if the variable n is of negative polarity, then 2n+1 is stored here,
-  // n is assumed to be zero indexed
-  vector<vector<int>> clauses;
-  Formula() {}
-
-  // copy constructor for copying a formula - each member is copied over
-  Formula(const Formula &f) {
-    literals = f.literals;
-    clauses = f.clauses;
-    literal_frequency = f.literal_frequency;
-    literal_polarity = f.literal_polarity;
-  }
-};
-
-/*
- * class to represent the structure and functions of the SAT Solver
- */
-class SATSolverDPLL {
-private:
-  Formula formula;               // the initial formula given as input
-  int literal_count;             // the number of variables in the formula
-  int clause_count;              // the number of clauses in the formula
-  int unit_propagate(Formula &); // performs unit propagation
-  int DPLL(Formula);             // performs DPLL recursively
-  int apply_transform(Formula &,
-                      int); // applies the value of the literal in every clause
-  void show_result(Formula &, int); // displays the result
-public:
-  SATSolverDPLL() {}
-  void initialize(); // intiializes the values
-  void solve();      // calls the solver
-};
-
-/*
- * function that accepts the inputs from the user and initializes the attributes
- * in the solver
- */
-void SATSolverDPLL::initialize() {
-  char c;   // store first character
-  string s; // dummy string
-
-  while (true) {
-    cin >> c;
-    if (c == 'c') // if comment
-    {
-      getline(cin, s); // ignore
-    } else             // else, if would be a p
-    {
-      cin >> s; // this would be cnf
-      break;
-    }
-  }
-  cin >> literal_count;
-  cin >> clause_count;
-
-  // set the vectors to their appropriate sizes and initial values
-  formula.literals.clear();
-  formula.literals.resize(literal_count, -1);
-  formula.clauses.clear();
-  formula.clauses.resize(clause_count);
-  formula.literal_frequency.clear();
-  formula.literal_frequency.resize(literal_count, 0);
-  formula.literal_polarity.clear();
-  formula.literal_polarity.resize(literal_count, 0);
-
-  int literal; // store the incoming literal value
-  // iterate over the clauses
-  for (int i = 0; i < clause_count; i++) {
-    while (true) // while the ith clause gets more literals
-    {
-      cin >> literal;
-      if (literal > 0) // if the variable has positive polarity
-      {
-        formula.clauses[i].push_back(2 *
-                                     (literal - 1)); // store it in the form 2n
-        // increment frequency and polarity of the literal
-        formula.literal_frequency[literal - 1]++;
-        formula.literal_polarity[literal - 1]++;
-      } else if (literal < 0) // if the variable has negative polarity
-      {
-        formula.clauses[i].push_back(2 * ((-1) * literal - 1) +
-                                     1); // store it in the form 2n+1
-        // increment frequency and decrement polarity of the literal
-        formula.literal_frequency[-1 - literal]++;
-        formula.literal_polarity[-1 - literal]--;
-      } else {
-        break; // read 0, so move to next clause
-      }
-    }
-  }
+int main(void)
+{
+	SATList* CNFList = NULL, * lp;
+	SATNode* tp;
+	clock_t start, finish;  //设置时间变量
+	double time;
+	int op = 1, i, result;
+	int* value;  //保存结果
+	while (op)
+	{
+		system("cls");	printf("\n\n");
+		printf("		功能菜单 \n");
+		printf("-------------------------------------------------\n");
+		printf("1.读取cnf文件	        2.遍历输出每个子句\n");
+		printf("3.DPLL求解算例并保存	4.二进制数独游戏\n");
+		printf("0.退出\n");
+		printf("-------------------------------------------------\n");
+		printf("	请选择你的操作[0~4]:");
+		scanf("%d", &op);
+		switch (op)
+		{
+		case 1:
+			printf("输入要读取的cnf文件:");
+			scanf("%s", fileName, 100);
+			ReadFile(CNFList);
+			getchar(); getchar();
+			break;
+		case 2:
+			if (CNFList == NULL) printf("未导入文件\n");
+			else
+			{
+				printf("cnf子句如下：\n");
+				for (lp = CNFList; lp != NULL; lp = lp->next)
+				{
+					for (tp = lp->head; tp != NULL; tp = tp->next)
+					{
+						printf("%d ", tp->data);
+					}
+					printf("\n");
+				}
+			}
+			getchar(); getchar();
+			break;
+		case 3:
+			if (CNFList == NULL) printf("未导入文件\n");
+			else
+			{
+				value = (int*)malloc(sizeof(int) * (boolCount + 1));
+				for (i = 1; i <= boolCount; i++) value[i] = 1;  //初始化，均赋为1
+				start = clock();  //计时开始;
+				result = DPLL(CNFList, value);
+				finish = clock();    //结束
+				printf("求解结果：%d\n", result);
+				if (result == 1)
+				{
+					for (i = 1; i <= boolCount; i++)
+					{
+						if (value[i] == 1) printf("%d ", i);
+						else printf("%d ", -i);
+					}
+					printf("\n");
+				}
+				time = (double)(finish - start) / CLOCKS_PER_SEC;//计算运行时间
+				printf("运行时间=%lfms\n", time * 1000);//输出运行时间
+				if (WriteFile(result, time, value) == 1)
+					printf("结果已保存至同名文件.res\n");
+				else printf("结果保存失败\n");
+			}
+			getchar(); getchar();
+			break;
+		case 4:
+			printf("生成棋盘大小(为偶数)：");
+			scanf("%d", &i);
+			CreateBinary(i);
+			getchar();
+			break;
+		case 0:
+			break;
+		}
+	}
+	return 0;
 }
 
 /*
- * function to perform unit resolution in a given formula
- * arguments: f - the formula to perform unit resolution on
- * return value: int - the status of the solver after unit resolution, a member
- * of the Cat enum Cat::satisfied - the formula has been satisfied
- *               Cat::unsatisfied - the formula can no longer be satisfied
- *               Cat::normal - normal exit
+ * 函数名称: ReadFile
+ * 接受参数: SATList*&
+ * 函数功能: 用文件指针fp打开用户指定的文件，并读取文件内容保存到给定参数中，读取成功返回1，失败返回0
+ * 返回值: int
  */
-int SATSolverDPLL::unit_propagate(Formula &f) {
-  bool unit_clause_found =
-      false; // stores whether the current iteration found a unit clause
-  if (f.clauses.size() == 0) // if the formula contains no clauses
-  {
-    return Cat::satisfied; // it is vacuously satisfied
-  }
-  do {
-    unit_clause_found = false;
-    // iterate over the clauses in f
-    for (int i = 0; i < f.clauses.size(); i++) {
-      if (f.clauses[i].size() ==
-          1) // if the size of a clause is 1, it is a unit clause
-      {
-        unit_clause_found = true;
-        f.literals[f.clauses[i][0] / 2] =
-            f.clauses[i][0] % 2; // 0 - if true, 1 - if false, set the literal
-        f.literal_frequency[f.clauses[i][0] / 2] =
-            -1; // once assigned, reset the frequency to mark it closed
-        int result = apply_transform(f, f.clauses[i][0] /
-                                            2); // apply this change through f
-        // if this caused the formula to be either satisfied or unsatisfied,
-        // return the result flag
-        if (result == Cat::satisfied || result == Cat::unsatisfied) {
-          return result;
-        }
-        break; // exit the loop to check for another unit clause from the start
-      } else if (f.clauses[i].size() == 0) // if a given clause is empty
-      {
-        return Cat::unsatisfied; // the formula is unsatisfiable in this branch
-      }
-    }
-  } while (unit_clause_found);
+int ReadFile(SATList*& cnf)
+{
+	FILE* fp;
+	char ch;
+	int number, i;
+	SATList* lp;
+	SATNode* tp;
+	if (fopen_s(&fp, fileName, "r")) {
+		printf("文件打开失败!\n");
+		return 0;
+	}
+	while ((ch = getc(fp)) == 'c') {
+		while ((ch = getc(fp)) != '\n')
+			continue;           //弃去一整行
+	}   //运行到此，已经读取了字符p
+	getc(fp); getc(fp); getc(fp); getc(fp); //弃去cnf三个字母
+	fscanf(fp, "%d", &boolCount);    //p后的第1个数值是布尔变元数量
+	fscanf(fp, "%d", &clauseCount);  //p后的第2个数值是子句数量
+	cnf = (SATList*)malloc(sizeof(SATList));
+	cnf->next = NULL;
+	cnf->head = (SATNode*)malloc(sizeof(SATNode));
+	cnf->head->next = NULL;
+	lp = cnf;
+	tp = cnf->head;
 
-  return Cat::normal; // if reached here, the unit resolution ended normally
+	//创建数量为clauseCount的子句, i为计数器
+	for (i = 0; i < clauseCount; i++, lp = lp->next, tp = lp->head)
+	{
+		fscanf(fp, "%d", &number);
+		for (; number != 0; tp = tp->next)
+		{
+			tp->data = number;  //数据域赋值
+			tp->next = (SATNode*)malloc(sizeof(SATNode));  //开辟新结点
+			fscanf(fp, "%d", &number);
+			if (number == 0) tp->next = NULL;
+		}
+		lp->next = (SATList*)malloc(sizeof(SATList));  //开辟新表
+		lp->next->head = (SATNode*)malloc(sizeof(SATNode));
+		if (i == clauseCount - 1)
+		{
+			lp->next = NULL;
+			break;
+		}
+	}
+	printf("读取完毕\n");
+	fclose(fp);
+	return 1;
 }
 
 /*
- * applies a value of a literal to all clauses in a given formula
- * arguments: f - the formula to apply on
- *            literal_to_apply - the literal which has just been set
- * return value: int - the return status flag, a member of the Cat enum
- *               Cat::satisfied - the formula has been satisfied
- *               Cat::unsatisfied - the formula can no longer be satisfied
- *               Cat::normal - normal exit
+ * 函数名称: destroyClause
+ * 接受参数: SATList*&
+ * 函数功能: 销毁链表
+ * 返回值: int
  */
-int SATSolverDPLL::apply_transform(Formula &f, int literal_to_apply) {
-  int value_to_apply = f.literals[literal_to_apply]; // the value to apply, 0 -
-                                                     // if true, 1 - if false
-  // iterate over the clauses in f
-  for (int i = 0; i < f.clauses.size(); i++) {
-    // iterate over the variables in the clause
-    for (int j = 0; j < f.clauses[i].size(); j++) {
-      // if this is true, then the literal appears with the same polarity as it
-      // is being applied that is, if assigned true, it appears positive if
-      // assigned false, it appears negative, in this clause hence, the clause
-      // has now become true
-      if ((2 * literal_to_apply + value_to_apply) == f.clauses[i][j]) {
-        f.clauses.erase(f.clauses.begin() +
-                        i); // remove the clause from the list
-        i--;                // reset iterator
-        if (f.clauses.size() ==
-            0) // if all clauses have been removed, the formula is satisfied
-        {
-          return Cat::satisfied;
-        }
-        break; // move to the next clause
-      } else if (f.clauses[i][j] / 2 ==
-                 literal_to_apply) // the literal appears with opposite polarity
-      {
-        f.clauses[i].erase(
-            f.clauses[i].begin() +
-            j); // remove the literal from the clause, as it is false in it
-        j--;    // reset the iterator
-        if (f.clauses[i].size() ==
-            0) // if the clause is empty, the formula is unsatisfiable currently
-        {
-          return Cat::unsatisfied;
-        }
-        break; // move to the next clause
-      }
-    }
-  }
-  // if reached here, the function is exiting normally
-  return Cat::normal;
+void destroyClause(SATList*& cnf)
+{
+	SATList* lp1, * lp2;
+	SATNode* tp1, * tp2;
+	for (lp1 = cnf; lp1 != NULL; lp1 = lp2)
+	{
+		lp2 = lp1->next;
+		for (tp1 = lp1->head; tp1 != NULL; tp1 = tp2)
+		{
+			tp2 = tp1->next;
+			free(tp1);
+		}
+		free(lp1);
+	}
+	cnf = NULL;
 }
 
 /*
- * function to perform the recursive DPLL on a given formula
- * argument: f - the formula to perform DPLL on
- * return value: int - the return status flag, a member of the Cat enum
- *               Cat::normal - exited normally
- *               Cat::completed - result has been found, exit recursion all the
- * way
+ * 函数名称: isUnitClause
+ * 接受参数: SATNode*
+ * 函数功能: 判断是否为单子句，是返回1，不是返回0
+ * 返回值: int
  */
-int SATSolverDPLL::DPLL(Formula f) {
-  int result = unit_propagate(f); // perform unit propagation on the formula
-  if (result == Cat::satisfied) // if formula satisfied, show result and return
-  {
-    show_result(f, result);
-    return Cat::completed;
-  } else if (result == Cat::unsatisfied) // if formula not satisfied in this
-                                         // branch, return normally
-  {
-    return Cat::normal;
-  }
-  // find the variable with maximum frequency in f, which will be the next to be
-  // assigned a value already assigned variables have this field reset to -1 in
-  // order to ignore them
-  int i = distance(
-      f.literal_frequency.begin(),
-      max_element(f.literal_frequency.begin(), f.literal_frequency.end()));
-  // need to apply twice, once true, the other false
-  for (int j = 0; j < 2; j++) {
-    Formula new_f = f; // copy the formula before recursing
-    if (new_f.literal_polarity[i] >
-        0) // if the number of literals with positive polarity are greater
-    {
-      new_f.literals[i] = j; // assign positive first
-    } else                   // if not
-    {
-      new_f.literals[i] = (j + 1) % 2; // assign negative first
-    }
-    new_f.literal_frequency[i] =
-        -1; // reset the frequency to -1 to ignore in the future
-    int transform_result =
-        apply_transform(new_f, i); // apply the change to all the clauses
-    if (transform_result ==
-        Cat::satisfied) // if formula satisfied, show result and return
-    {
-      show_result(new_f, transform_result);
-      return Cat::completed;
-    } else if (transform_result == Cat::unsatisfied) // if formula not satisfied
-                                                     // in this branch, return
-                                                     // normally
-    {
-      continue;
-    }
-    int dpll_result = DPLL(new_f); // recursively call DPLL on the new formula
-    if (dpll_result == Cat::completed) // propagate the result, if completed
-    {
-      return dpll_result;
-    }
-  }
-  // if the control reaches here, the function has returned normally
-  return Cat::normal;
+int isUnitClause(SATNode* cnf)
+{
+	if (cnf != NULL && cnf->next == NULL)
+		return 1;
+	else
+		return 0;
 }
 
 /*
- * function to display the result of the solver
- * arguments: f - the formula when it was satisfied or shown to be unsatisfiable
- *            result - the result flag, a member of the Cat enum
+ * 函数名称: evaluateClause
+ * 接受参数: SATList*
+ * 函数功能: 评估子句的真假状态，真返回1，假返回0
+ * 返回值: int
  */
-void SATSolverDPLL::show_result(Formula &f, int result) {
-  if (result == Cat::satisfied) // if the formula is satisfiable
-  {
-    cout << "SAT" << endl;
-    for (int i = 0; i < f.literals.size(); i++) {
-      if (i != 0) {
-        cout << " ";
-      }
-      if (f.literals[i] != -1) {
-        cout << pow(-1, f.literals[i]) * (i + 1);
-      } else // for literals which can take either value, arbitrarily assign
-             // them to be true
-      {
-        cout << (i + 1);
-      }
-    }
-    cout << " 0";
-  } else // if the formula is unsatisfiable
-  {
-    cout << "UNSAT";
-  }
+int evaluateClause(SATNode* cnf,int v[])
+{
+	SATNode* tp = cnf;
+	while (tp != NULL)
+	{
+		if (tp->data > 0 && v[tp->data] == 1 ||
+			tp->data < 0 && v[-tp->data] == 0)
+			return 1;
+	}
+	return 0;
 }
 
 /*
- * function to call the solver
+ * 函数名称: removeClause
+ * 接受参数: SATList*,SATList*
+ * 函数功能: 在已有的十字链表中删除指定的子句，删除成功返回1，失败返回0
+ * 返回值: int
  */
-void SATSolverDPLL::solve() {
-  int result = DPLL(formula); // final result of DPLL on the original formula
-  // if normal return till the end, then the formula could not be satisfied in
-  // any branch, so it is unsatisfiable
-  if (result == Cat::normal) {
-    show_result(formula, Cat::unsatisfied); // the argument formula is a dummy
-                                            // here, the result is UNSAT
-  }
+int removeClause(SATList*& cnf, SATList*& root)
+{
+	SATList* lp = root;
+	if (lp == cnf) root = root->next;  //删除为头
+	else
+	{
+		while (lp != NULL && lp->next != cnf) lp = lp->next;
+		lp->next = lp->next->next;
+	}
+	free(cnf);
+	cnf = NULL;
+	return 1;
 }
 
-int main() {
-  SATSolverDPLL solver; // create the solver
-  solver.initialize();  // initialize
-  solver.solve();       // solve
-  return 0;
+/*
+ * 函数名称: removeNote
+ * 接受参数: SATNode*,SATNode*
+ * 函数功能: 在指定的子句中删除指定的文字，删除成功返回1，失败返回0
+ * 返回值: int
+ */
+int removeNode(SATNode*& cnf, SATNode*& head)
+{
+	SATNode* lp = head;
+	if (lp == cnf) head = head->next;  //删除为头
+	else
+	{
+		while (lp != NULL && lp->next != cnf) lp = lp->next;
+		lp->next = lp->next->next;
+	}
+	free(cnf);
+	cnf = NULL;
+	return 1;
+}
+
+/*
+ * 函数名称: addClause
+ * 接受参数: SATList*,SATList*
+ * 函数功能: 在已有的十字链表中添加指定的子句，添加成功返回1，失败返回0
+ * 返回值: int
+ */
+int addClause(SATList* cnf, SATList*& root)
+{
+	//直接插入在表头
+	if (cnf != NULL)
+	{
+		cnf->next = root;
+		root = cnf;
+		return 1;
+	}
+	return 0;
+}
+
+/*
+ * 函数名称: emptyClause
+ * 接受参数: SATList*
+ * 函数功能: 判断是否含有空子句，是返回1，不是返回0
+ * 返回值: int
+ */
+int emptyClause(SATList* cnf)
+{
+	SATList* lp = cnf;
+	while (lp != NULL)
+	{
+		if (lp->head == NULL) return 1;
+		lp = lp->next;
+	}
+	return 0;
+}
+
+/*
+ * 函数名称: CopyClause
+ * 接受参数: SATList*,SATList*
+ * 函数功能: 将链表b的值复制到链表a中
+ * 返回值: void
+ */
+void CopyClause(SATList*& a, SATList* b)
+{
+	SATList* lpa,*lpb;
+	SATNode* tpa,*tpb;
+	a = (SATList*)malloc(sizeof(SATList));
+	a->head = (SATNode*)malloc(sizeof(SATNode));
+	a->next = NULL;
+	a->head->next = NULL;
+	for (lpb = b, lpa = a; lpb != NULL; lpb = lpb->next, lpa = lpa->next)
+	{
+		for (tpb = lpb->head, tpa = lpa->head; tpb != NULL; tpb = tpb->next, tpa = tpa->next)
+		{
+			tpa->data = tpb->data;
+			tpa->next = (SATNode*)malloc(sizeof(SATNode));
+			tpa->next->next = NULL;
+			if (tpb->next == NULL)
+			{
+				free(tpa->next);
+				tpa->next = NULL;
+			}
+		}
+		lpa->next = (SATList*)malloc(sizeof(SATList));
+		lpa->next->head = (SATNode*)malloc(sizeof(SATNode));
+		lpa->next->next = NULL;
+		lpa->next->head->next = NULL;
+		if (lpb->next == NULL)
+		{
+			free(lpa->next->head);
+			free(lpa->next);
+			lpa->next = NULL;
+		}
+	}
+}
+
+/*
+* 函数名称: DPLL
+* 接受参数: SATList *
+* 函数功能: 求解SAT问题，给出满足条件时的一个式子,若有解则返回1，无解返回0
+* 返回值: int
+*/
+int DPLL(SATList*& cnf, int value[])
+{
+	SATList* tp = cnf, * lp = cnf, * sp;
+	SATNode* dp;
+	int* count, i, MaxWord, max, re; //count记录每个文字出现次数,MaxWord记录出现最多次数的文字
+	count = (int*)malloc(sizeof(int) * (boolCount * 2 + 1));
+FIND:	while (tp != NULL && isUnitClause(tp->head) == 0) tp = tp->next;  //找到表中的单子句
+	if (tp != NULL)
+	{
+		//单子句规则简化
+		if (tp->head->data > 0) value[tp->head->data] = 1;
+		else value[-tp->head->data] = 0;
+		re = tp->head->data;
+		for (lp = cnf; lp != NULL; lp = sp)
+		{
+			sp = lp->next;
+
+			//查找含有核心文字的句子
+			for (dp = lp->head; dp != NULL; dp = dp->next)
+			{
+				if (dp->data == re)
+				{
+					removeClause(lp, cnf);  //删除子句，简化式子
+					break;
+				}
+				if (dp->data == -re)
+				{
+					removeNode(dp, lp->head);  //删除文字，简化子句
+					break;
+				}
+			}
+		}
+		//极简化规则简化后
+		if (cnf == NULL)
+		{
+			free(count);
+			return 1;
+		}
+		else if (emptyClause(cnf))
+		{
+			free(count);
+			destroyClause(cnf);
+			return 0;
+		}
+		tp = cnf;
+		goto FIND;  //继续简化
+	}
+	for (i = 0; i <= boolCount * 2; i++) count[i] = 0;  //初始化
+
+	//计算子句中各文字出现次数
+	for (lp = cnf; lp != NULL; lp = lp->next)
+	{
+		for (dp = lp->head; dp != NULL; dp = dp->next)
+		{
+			if (dp->data > 0) count[dp->data]++;
+			else count[boolCount - dp->data]++;
+		}
+	}
+	max = 0;
+
+	//找到出现次数最多的正文字
+	for (i = 2; i <= boolCount; i++)
+	{
+		if (max < count[i])
+		{
+			max = count[i];
+			MaxWord = i;
+		}
+	}
+
+	if (max == 0)
+	{
+		//若没有出现正文字,找到出现次数最多的负文字
+		for (i = boolCount + 1; i <= boolCount * 2; i++)
+		{
+			if (max < count[i])
+			{
+				max = count[i];
+				MaxWord = -i;
+			}
+		}
+	}
+	free(count);
+	lp = (SATList*)malloc(sizeof(SATList));
+	lp->head = (SATNode*)malloc(sizeof(SATNode));
+	lp->head->data = MaxWord;
+	lp->head->next = NULL;
+	lp->next = NULL;
+	CopyClause(tp, cnf);
+	addClause(lp, tp);
+	if (DPLL(tp, value) == 1) return 1;  //在第一分支中搜索
+	destroyClause(tp);
+	lp = (SATList*)malloc(sizeof(SATList));
+	lp->head = (SATNode*)malloc(sizeof(SATNode));
+	lp->head->data = -MaxWord;
+	lp->head->next = NULL;
+	lp->next = NULL;
+	addClause(lp, cnf);
+	re = DPLL(cnf, value); //回溯到执行分支策略的初态进入另一分支
+	destroyClause(cnf);
+	return re;
+}
+
+/*
+* 函数名称: WriteFile
+* 接受参数: int,int,int[]
+* 函数功能: 将运行结果保存至同名文件，文件拓展名为.res,保存成功返回1，失败返回0
+* 返回值: int
+*/
+int WriteFile(int result, double time, int value[])
+{
+	FILE* fp;
+	int i;
+	for (i = 0; fileName[i] != '\0'; i++)
+	{
+		//修改拓展名
+		if (fileName[i] == '.' && fileName[i + 4] == '\0')
+		{
+			fileName[i + 1] = 'r';
+			fileName[i + 2] = 'e';
+			fileName[i + 3] = 's';
+			break;
+		}
+	}
+	if (fopen_s(&fp, fileName, "w")) {
+		printf("文件打开失败!\n");
+		return 0;
+	}
+	fprintf(fp, "s %d\nv ", result);  //求解结果
+	if (result == 1)
+	{
+		//保存解值
+		for (i = 1; i <= boolCount; i++)
+		{
+			if (value[i] == 1) fprintf(fp, "%d ", i);
+			else fprintf(fp, "%d ", -i);
+		}
+	}
+	fprintf(fp, "\nt %lf", time * 1000);  //运行时间/毫秒
+	fclose(fp);
+	return 1;
+}
+
+/*
+* 函数名称: CreateBinary
+* 接受参数: int
+* 函数功能: 按照指定大小生成棋盘
+* 返回值: void
+*/
+void CreateBinary(int size)
+{
+	int* chess, i, j = 0;
+	//开辟size*size大小的数组
+	chess = (int*)malloc(sizeof(int) * (size * size + 1));
+	for (i = 0; i <= size*size; i++) chess[i] = -1;  //初始化
+	srand(time(0));  //时间随机
+	chess[rand() % (size * size + 1)] = rand() % 2;  //随机给定棋盘一初始条件
+	SolvePuzzle(chess, size);  //生成二进制数独棋盘
+	for (i = 0; i <= rand() % (size / 2) + size * (size - 2); i++)
+	{
+		//随机选择size * (size - 2)到size * (size - 2)+(size / 2)个数字清空
+		while (j == 0 || chess[j] == -1) j = rand() % (size * size + 1);  //选择合适的数字
+		chess[j] = -1;
+	}
+	for (j = 0, i = 0; j <= size * size || i <= (size+1) * (size+1);)
+	{
+		if (j % size == 0)
+		{
+			//打印棋盘
+			if (i % (size + 1) == 0 && i > 0) printf("┃\n");
+			i++;
+			if (i == 1) printf("┌-");
+			else if (i < size + 1) printf("-┬-");
+			else if (i == size + 1) printf("-┐");
+			else if (i == (size + 1) * size + 1) printf("└-");
+			else if (i == (size + 1) * (size + 1)) printf("-┘");
+			else if (i > (size + 1)* size) printf("-┷-");
+			else if (i % (size + 1) == 1) printf("├-");
+			else if (i % (size + 1) == 0) printf("-┤");
+			else printf("-┿-");
+		}
+		if (i % (size + 1) == 0)
+		{
+			//输出数独
+			if (j % size == 0) printf("\n");
+			j++;
+			if (j > size* size) break;
+			if (chess[j] == -1) printf("┃  ");
+			else printf("┃ %d", chess[j]);
+		}
+	}
+	printf("按Enter键输出数独答案");
+	getchar(); getchar();
+	SolvePuzzle(chess, size);  //求解答案
+	for (i = 1; i <= size * size; i++)
+	{
+		printf("%d ", chess[i]);
+		if (i % size == 0) printf("\n");
+	}
+	free(chess);
+}
+
+/*
+* 函数名称: SolvePuzzle
+* 接受参数: int[],int
+* 函数功能: 求解输入棋盘，有解返回1，无解返回0
+* 返回值: int
+*/
+int SolvePuzzle(int chess[], int size)
+{
+	SATList* cnf = NULL, * lp;
+	SATNode* dp;
+	int* remember, i, j, k, rol;
+	boolCount = size * size;
+
+	//添加单子句
+	for (i = 1; i <= size * size; i++)
+	{
+		if (chess[i] == 0)
+		{
+			lp = (SATList*)malloc(sizeof(SATList));
+			lp->head = (SATNode*)malloc(sizeof(SATNode));
+			lp->head->next = NULL;
+			lp->next = NULL;
+			lp->head->data = -i;
+			addClause(lp, cnf);
+		}
+		else if (chess[i] == 1)
+		{
+			lp = (SATList*)malloc(sizeof(SATList));
+			lp->head = (SATNode*)malloc(sizeof(SATNode));
+			lp->head->next = NULL;
+			lp->next = NULL;
+			lp->head->data = i;
+			addClause(lp, cnf);
+		}
+	}
+
+	//约束1：不出现连续三个重复数字
+	for (i = 0; i < size; i++)
+	{
+		for (j = 0; j < size - 2; j++)
+		{
+			//横向，正文字
+			lp = (SATList*)malloc(sizeof(SATList));
+			lp->head = (SATNode*)malloc(sizeof(SATNode));
+			lp->head->next = (SATNode*)malloc(sizeof(SATNode));
+			lp->head->next->next = (SATNode*)malloc(sizeof(SATNode));
+			lp->head->next->next->next = NULL;
+			lp->next = NULL;
+			lp->head->data = i * size + j + 1;
+			lp->head->next->data = i * size + j + 2;
+			lp->head->next->next->data = i * size + j + 3;
+			addClause(lp, cnf);
+			//横向，负文字
+			lp = (SATList*)malloc(sizeof(SATList));
+			lp->head = (SATNode*)malloc(sizeof(SATNode));
+			lp->head->next = (SATNode*)malloc(sizeof(SATNode));
+			lp->head->next->next = (SATNode*)malloc(sizeof(SATNode));
+			lp->head->next->next->next = NULL;
+			lp->next = NULL;
+			lp->head->data = -(i * size + j + 1);
+			lp->head->next->data = -(i * size + j + 2);
+			lp->head->next->next->data = -(i * size + j + 3);
+			addClause(lp, cnf);
+			//纵向，正文字
+			lp = (SATList*)malloc(sizeof(SATList));
+			lp->head = (SATNode*)malloc(sizeof(SATNode));
+			lp->head->next = (SATNode*)malloc(sizeof(SATNode));
+			lp->head->next->next = (SATNode*)malloc(sizeof(SATNode));
+			lp->head->next->next->next = NULL;
+			lp->next = NULL;
+			lp->head->data = i + j * size + 1;
+			lp->head->next->data = i + (j + 1) * size + 1;
+			lp->head->next->next->data = i + (j + 2) * size + 1;
+			addClause(lp, cnf);
+			//纵向，负文字
+			lp = (SATList*)malloc(sizeof(SATList));
+			lp->head = (SATNode*)malloc(sizeof(SATNode));
+			lp->head->next = (SATNode*)malloc(sizeof(SATNode));
+			lp->head->next->next = (SATNode*)malloc(sizeof(SATNode));
+			lp->head->next->next->next = NULL;
+			lp->next = NULL;
+			lp->head->data = -(i + j * size + 1);
+			lp->head->next->data = -(i + (j + 1) * size + 1);
+			lp->head->next->next->data = -(i + (j + 2) * size + 1);
+			addClause(lp, cnf);
+		}
+	}
+
+	//约束2：在每一行、每一列中1与0的个数相同
+	remember = (int*)malloc(sizeof(int) * (size / 2 + 1));
+	//每一行
+	for (rol = 0; rol < size; rol++)
+	{
+		for (i = 0; i < size / 2 + 1; i++) remember[i] = i + 1;  //初始化
+	COMBINATION1:for (i = size / 2; remember[i] <= size; remember[i]++)
+	{
+		lp = (SATList*)malloc(sizeof(SATList));
+		lp->head = (SATNode*)malloc(sizeof(SATNode));
+		lp->head->next = NULL;
+		lp->next = NULL;
+		for (j = 0, dp = lp->head; j < size / 2 + 1; j++, dp = dp->next)
+		{
+			dp->data = remember[j] + rol * size;
+			if (j == size / 2) break;
+			dp->next = (SATNode*)malloc(sizeof(SATNode));
+			dp->next->next = NULL;
+		}
+		addClause(lp, cnf);
+		lp = (SATList*)malloc(sizeof(SATList));
+		lp->head = (SATNode*)malloc(sizeof(SATNode));
+		lp->head->next = NULL;
+		lp->next = NULL;
+		for (j = 0, dp = lp->head; j < size / 2 + 1; j++, dp = dp->next)
+		{
+			dp->data = -(remember[j] + rol * size);
+			if (j == size / 2) break;
+			dp->next = (SATNode*)malloc(sizeof(SATNode));
+			dp->next->next = NULL;
+		}
+		addClause(lp, cnf);
+	}
+	for (i = size / 2; i >= 0 && remember[i] >= size / 2 + i; i--);  //找到达到饱和的最高位
+	if (i <= 0) continue;  //该行组合序列全部排完,进入下一行
+	remember[i]++;
+	for (j = i + 1; j < size / 2 + 1; j++) remember[j] = remember[j - 1] + 1; //序列后移
+	goto COMBINATION1;
+	}
+	//每一列
+	for (rol = 1; rol <= size; rol++)
+	{
+		for (i = 0; i < size / 2 + 1; i++) remember[i] = i;  //初始化
+	COMBINATION2:for (i = size / 2; remember[i] < size; remember[i]++)
+	{
+		lp = (SATList*)malloc(sizeof(SATList));
+		lp->head = (SATNode*)malloc(sizeof(SATNode));
+		lp->head->next = NULL;
+		lp->next = NULL;
+		for (j = 0, dp = lp->head; j < size / 2 + 1; j++, dp = dp->next)
+		{
+			dp->data = remember[j] * size + rol;
+			if (j == size / 2) break;
+			dp->next = (SATNode*)malloc(sizeof(SATNode));
+			dp->next->next = NULL;
+		}
+		addClause(lp, cnf);
+		lp = (SATList*)malloc(sizeof(SATList));
+		lp->head = (SATNode*)malloc(sizeof(SATNode));
+		lp->head->next = NULL;
+		lp->next = NULL;
+		for (j = 0, dp = lp->head; j < size / 2 + 1; j++, dp = dp->next)
+		{
+			dp->data = -(remember[j] * size + rol);
+			if (j == size / 2) break;
+			dp->next = (SATNode*)malloc(sizeof(SATNode));
+			dp->next->next = NULL;
+		}
+		addClause(lp, cnf);
+	}
+	for (i = size / 2; i >= 0 && remember[i] > size / 2 + i; i--);  //找到达到饱和的最高位
+	if (i <= 0) continue;  //该列组合序列全部排完,进入下一列
+	remember[i]++;
+	for (j = i + 1; j < size / 2 + 1; j++) remember[j] = remember[j - 1] + 1; //序列后移
+	goto COMBINATION2;
+	}
+
+	//约束3：不存在重复的行与重复的列
+	//不重复行：
+	for (i = 0; i < size - 1; i++)
+	{
+		for (j = i + 1; j < size; j++)
+		{
+			rol = boolCount; //记录添加变元之前变元数量
+			for (k = 1; k <= size; k++)
+			{
+				//引入前一个新变元：
+				boolCount++;
+				//语句1：
+				lp = (SATList*)malloc(sizeof(SATList));
+				lp->head = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next->next = NULL;
+				lp->next = NULL;
+				lp->head->data = i * size + k;
+				lp->head->next->data = -boolCount;
+				addClause(lp, cnf);
+				//语句2：
+				lp = (SATList*)malloc(sizeof(SATList));
+				lp->head = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next->next = NULL;
+				lp->next = NULL;
+				lp->head->data = -(j * size + k);
+				lp->head->next->data = -boolCount;
+				addClause(lp, cnf);
+				//语句3：
+				lp = (SATList*)malloc(sizeof(SATList));
+				lp->head = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next->next = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next->next->next = NULL;
+				lp->next = NULL;
+				lp->head->data = -(i * size + k);
+				lp->head->next->data = j * size + k;
+				lp->head->next->next->data = boolCount;
+				addClause(lp, cnf);
+				//引入后一个新变元：
+				boolCount++;
+				//语句1：
+				lp = (SATList*)malloc(sizeof(SATList));
+				lp->head = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next->next = NULL;
+				lp->next = NULL;
+				lp->head->data = -(i * size + k);
+				lp->head->next->data = -boolCount;
+				addClause(lp, cnf);
+				//语句2：
+				lp = (SATList*)malloc(sizeof(SATList));
+				lp->head = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next->next = NULL;
+				lp->next = NULL;
+				lp->head->data = j * size + k;
+				lp->head->next->data = -boolCount;
+				addClause(lp, cnf);
+				//语句3：
+				lp = (SATList*)malloc(sizeof(SATList));
+				lp->head = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next->next = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next->next->next = NULL;
+				lp->next = NULL;
+				lp->head->data = i * size + k;
+				lp->head->next->data = -(j * size + k);
+				lp->head->next->next->data = boolCount;
+				addClause(lp, cnf);
+			}
+			//添加长句：不重复行满足的关系
+			lp = (SATList*)malloc(sizeof(SATList));
+			lp->head = (SATNode*)malloc(sizeof(SATNode));
+			lp->head->next = NULL;
+			lp->next = NULL;
+			for (k = rol + 1, dp = lp->head; k <= boolCount; k++, dp = dp->next)
+			{
+				dp->data = k;
+				if (k == boolCount) break;
+				dp->next = (SATNode*)malloc(sizeof(SATNode));
+				dp->next->next = NULL;
+			}
+			addClause(lp, cnf);
+		}
+	}
+	//不重复列
+	for (i = 1; i <= size - 1; i++)
+	{
+		for (j = i + 1; j <= size; j++)
+		{
+			rol = boolCount; //记录添加变元之前变元数量
+			for (k = 0; k < size; k++)
+			{
+				//引入前一个新变元：
+				boolCount++;
+				//语句1：
+				lp = (SATList*)malloc(sizeof(SATList));
+				lp->head = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next->next = NULL;
+				lp->next = NULL;
+				lp->head->data = i + k * size;
+				lp->head->next->data = -boolCount;
+				addClause(lp, cnf);
+				//语句2：
+				lp = (SATList*)malloc(sizeof(SATList));
+				lp->head = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next->next = NULL;
+				lp->next = NULL;
+				lp->head->data = -(j + k * size);
+				lp->head->next->data = -boolCount;
+				addClause(lp, cnf);
+				//语句3：
+				lp = (SATList*)malloc(sizeof(SATList));
+				lp->head = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next->next = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next->next->next = NULL;
+				lp->next = NULL;
+				lp->head->data = -(i + k * size);
+				lp->head->next->data = j + k * size;
+				lp->head->next->next->data = boolCount;
+				addClause(lp, cnf);
+				//引入后一个新变元：
+				boolCount++;
+				//语句1：
+				lp = (SATList*)malloc(sizeof(SATList));
+				lp->head = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next->next = NULL;
+				lp->next = NULL;
+				lp->head->data = -(i + k * size);
+				lp->head->next->data = -boolCount;
+				addClause(lp, cnf);
+				//语句2：
+				lp = (SATList*)malloc(sizeof(SATList));
+				lp->head = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next->next = NULL;
+				lp->next = NULL;
+				lp->head->data = j + k * size;
+				lp->head->next->data = -boolCount;
+				addClause(lp, cnf);
+				//语句3：
+				lp = (SATList*)malloc(sizeof(SATList));
+				lp->head = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next->next = (SATNode*)malloc(sizeof(SATNode));
+				lp->head->next->next->next = NULL;
+				lp->next = NULL;
+				lp->head->data = i + k * size;
+				lp->head->next->data = -(j + k * size);
+				lp->head->next->next->data = boolCount;
+				addClause(lp, cnf);
+			}
+			//添加长句：不重复行满足的关系
+			lp = (SATList*)malloc(sizeof(SATList));
+			lp->head = (SATNode*)malloc(sizeof(SATNode));
+			lp->head->next = NULL;
+			lp->next = NULL;
+			for (k = rol + 1, dp = lp->head; k <= boolCount; k++, dp = dp->next)
+			{
+				dp->data = k;
+				if (k == boolCount) break;
+				dp->next = (SATNode*)malloc(sizeof(SATNode));
+				dp->next->next = NULL;
+			}
+			addClause(lp, cnf);
+		}
+	}
+	free(remember);
+	remember = (int*)malloc(sizeof(int) * (boolCount + 1));
+	for (i = 1; i <= boolCount; i++) remember[i] = 1;  //初始化
+	if (DPLL(cnf, remember) == 1)
+	{
+		for (i = 1; i <= size * size; i++) chess[i] = remember[i];
+		free(remember);
+		destroyClause(cnf);
+		return 1;
+	}
+	else
+	{
+		free(remember);
+		destroyClause(cnf);
+		return 0;
+	}
 }

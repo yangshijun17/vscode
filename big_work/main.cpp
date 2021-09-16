@@ -14,7 +14,7 @@ typedef struct _charanode
 } charanode;
 typedef struct _cnf
 {
-    int length;
+    //int length;
     charanode *head;
     struct _cnf *next;
 } cnf;
@@ -25,17 +25,18 @@ int isOneClause(charanode *chara);
 int deleteClause(cnf *&CNF, cnf *&deleted);
 int deletechara(charanode *&head, charanode *&CNF);
 int iswithEmptyClause(cnf *CNF);
-int DPLL(cnf *&CNF, int value[]);
-int DPLLquicker(cnf *&CNF, int value[]);
+int betterDPLL(cnf *&CNF, int value[]);
 void addClause(cnf *CNF, cnf *&root);
 void copyclause(cnf *&CNF, cnf *CNF2);
-int savedata(int value[], char Filename[], double time,int result);
+int savedata(int value[], char Filename[], double time, int result);
 void createsudoku(int sudoku[][9]);
 void dfs();
 int solveSudoku(int sudoku[][9]);
 void dighole(int sudoku[][9], int n);
 int check(int sudoku[][9], int x, int y);
-int betterDPLL(cnf *&CNF,int value[]);
+int DPLL(cnf *&CNF, int value[]);
+void sort();
+void predeal();
 int main()
 {
     cnf *CNF = NULL;
@@ -45,7 +46,7 @@ int main()
     char Filename[80];
     while (opt)
     {
-        // system("cls");
+        system("cls");
         opt1 = 1, opt2 = 1;
         printf("\n\n");
         printf("                    Menu Of options   \n");
@@ -61,12 +62,12 @@ int main()
         {
             while (opt1)
             {
-                // system("cls");
+                system("cls");
                 printf("\n\n");
                 printf("                   Menu of SAT      \n");
                 printf("-------------------------------------------------\n");
                 printf("          1. ReadCNF        2. ShowCNF           \n");
-                printf("          3. DPLL           4. BetterDPLL        \n");
+                printf("          3. BetterDPLL           4. DPLL        \n");
                 printf("                      0. exit    \n");
                 printf("Please input your option[0-4]");
                 scanf("%d", &opt1);
@@ -84,7 +85,7 @@ int main()
                     getchar();
                     getchar();
                     break;
-                }// end of case1 in sat
+                } // end of case1 in sat
                 case 2:
                 {
                     if (CNF == NULL)
@@ -99,7 +100,7 @@ int main()
                     getchar();
                     getchar();
                     break;
-                }// end of case2 in sat
+                } // end of case2 in sat
                 case 3:
                 {
                     if (CNF == NULL)
@@ -112,7 +113,7 @@ int main()
                         for (int i = 1; i <= boolnum; i++)
                             value[i] = 1;
                         start = clock();
-                        int result = DPLL(CNF, value);
+                        int result = betterDPLL(CNF, value);
                         finish = clock();
                         printf("result: %d\n", result);
                         if (result)
@@ -128,29 +129,55 @@ int main()
                         }
                         double time = (double)(finish - start) / CLOCKS_PER_SEC;
                         printf("\nruntime:%lf\n", time * 1000);
-                        savedata(value, Filename, time,result);
+                        savedata(value, Filename, time, result);
                         printf("This file is saved with the same name of CNF\n");
                     }
                     getchar();
                     getchar();
                     break;
-                }// end of case3 in sat
+                } // end of case3 in sat
                 case 4:
                 {
+                    value = (int *)malloc(sizeof(int) * (boolnum + 1));
+                    for (int i = 1; i <= boolnum; i++)
+                        value[i] = 1;
+                    int result;
+                    start = clock();
+                    result = DPLL(CNF, value);
+                    finish = clock();
+                    printf("result: %d\n", result);
+                    if (result)
+                    {
+                        printf("the answer is as follows:\n");
+                        for (int i = 1; i <= boolnum; i++)
+                        {
+                            if (value[i])
+                                printf("%d ", i);
+                            else
+                                printf("-%d ", i);
+                        }
+                    }
+                    double time = (double)(finish - start) / CLOCKS_PER_SEC;
+                    printf("\nruntime:%lf\n", time * 1000);
+                    savedata(value, Filename, time, result);
+                    printf("This file is saved with the same name of CNF\n");
+                    getchar();
+                    getchar();
                     break;
-                }// end of case4 in sat
+                } // end of case4 in sat
                 case 0:
                 {
                     break;
-                }// end of case0 in sat
+                } // end of case0 in sat
                 } // end of the sat switch
             }     // end of the sat while
-        }         // end of case 1
+            break;
+        } // end of case 1
         case 2:
         {
             while (opt2)
             {
-                // system("cls");
+                system("cls");
                 printf("\n\n");
                 printf("                Menu of sudoku\n");
                 printf("------------------------------------------\n");
@@ -175,13 +202,13 @@ int main()
                             printf("%d ", sudoku[i][j]);
                         printf("\n");
                     }
-                    for (int i = 0; i < 9;i++)
-                        for (int j = 0; j < 9;j++)
+                    for (int i = 0; i < 9; i++)
+                        for (int j = 0; j < 9; j++)
                             sudoku1[i][j] = sudoku[i][j];
                     getchar();
                     getchar();
                     break;
-                }//end of case 1 in sudoku
+                } //end of case 1 in sudoku
                 case 2:
                 {
                     int opt3 = 1;
@@ -198,7 +225,7 @@ int main()
                         printf("               0. input answers\n");
                         printf("--------------------------------------------\n");
                         printf("Please input your options[0-2]\n");
-                        scanf("%d", &opt3); 
+                        scanf("%d", &opt3);
                         switch (opt3)
                         {
                         case 1:
@@ -232,7 +259,7 @@ int main()
                             getchar();
                             getchar();
                             break;
-                        } 
+                        }
                         case 2:
                         {
                             for (int i = 0; i < 9; i++)
@@ -290,22 +317,22 @@ int main()
                     FILE *fp;
                     scanf("%s", filename);
                     fp = fopen(filename, "w");
-                    if(fp==NULL)
+                    if (fp == NULL)
                     {
                         printf("ERROR!\n");
                         break;
                     }
-                    fprintf(fp, "原数独问题如下:\n");
-                    for (int i = 0; i < 9;i++)
+                    fprintf(fp, "questions:\n");
+                    for (int i = 0; i < 9; i++)
                     {
-                        for (int j = 0; j < 9;j++)
+                        for (int j = 0; j < 9; j++)
                             fprintf(fp, "%d ", sudoku1[i][j]);
                         fprintf(fp, "\n");
                     }
-                    fprintf(fp, "解如下:\n");
-                    for (int i = 0; i < 9;i++)
+                    fprintf(fp, "answer:\n");
+                    for (int i = 0; i < 9; i++)
                     {
-                        for (int j = 0; j < 9;j++)
+                        for (int j = 0; j < 9; j++)
                             fprintf(fp, "%d ", sudoku[i][j]);
                         fprintf(fp, "\n");
                     }
@@ -364,6 +391,7 @@ int readCNF(cnf *&CNF, char Filename[80]) //将文件中的内容导入到十字链表中，文件
         fscanf(fp, "%d", &key);
         while (key != 0)
         {
+            //tailcnf->length++;
             tailbool->data = key;
             tailbool->next = (charanode *)malloc(sizeof(charanode));
             fscanf(fp, "%d", &key);
@@ -372,6 +400,7 @@ int readCNF(cnf *&CNF, char Filename[80]) //将文件中的内容导入到十字链表中，文件
             tailbool = tailbool->next;
         }
         tailcnf->next = (cnf *)malloc(sizeof(cnf));
+        //tailcnf->next->length = 0;
         tailcnf->next->head = (charanode *)malloc(sizeof(charanode));
         if (i == clausnum - 1)
         {
@@ -491,7 +520,7 @@ void copyclause(cnf *&CNF, cnf *CNF2) //该函数将CNF2的值赋到CNF
         }
     }
 }
-int DPLL(cnf *&CNF, int value[]) //利用DPLL算法来解析cnf文件
+int betterDPLL(cnf *&CNF, int value[]) //利用DPLL算法来解析cnf文件
 {
     cnf *p, *q, *r;
     p = CNF, q = CNF;
@@ -580,7 +609,7 @@ int DPLL(cnf *&CNF, int value[]) //利用DPLL算法来解析cnf文件
         p->next = q;
         q = p;
     }
-    if (DPLL(q, value) == 1)
+    if (betterDPLL(q, value) == 1)
         return 1;
     deleteCNF(q);
     p = (cnf *)malloc(sizeof(cnf));
@@ -593,7 +622,7 @@ int DPLL(cnf *&CNF, int value[]) //利用DPLL算法来解析cnf文件
         p->next = CNF;
         CNF = p;
     }
-    int i = DPLL(CNF, value);
+    int i = betterDPLL(CNF, value);
     deleteCNF(CNF);
     return i;
 }
@@ -613,7 +642,7 @@ void deleteCNF(cnf *&CNF)
     }
     CNF = NULL;
 }
-int savedata(int value[], char Filename[], double time,int result)
+int savedata(int value[], char Filename[], double time, int result)
 {
     FILE *fp;
     for (int i = 0; Filename[i] != '\0'; i++)
@@ -632,13 +661,16 @@ int savedata(int value[], char Filename[], double time,int result)
         printf("can't open this file!\n");
         return 0;
     }
-    fprintf(fp, "s %d\nv", result);
-    for (int i = 1; i <= boolnum; i++)
+    fprintf(fp, "s %d\nv ", result);
+    if (result == 1)
     {
-        if (value[i])
-            fprintf(fp, "%d ", i);
-        else
-            fprintf(fp, "-%d ", i);
+        for (int i = 1; i <= boolnum; i++)
+        {
+            if (value[i])
+                fprintf(fp, "%d ", i);
+            else
+                fprintf(fp, "-%d ", i);
+        }
     }
     fprintf(fp, "\nt %lf", time * 1000);
     fclose(fp);
@@ -893,7 +925,7 @@ int solveSudoku(int sudoku[][9])
     ans = (int *)malloc(sizeof(int) * 750);
     for (int i = 0; i <= boolnum; i++)
         ans[i] = 1;
-    if (DPLL(Sudoku, ans))
+    if (betterDPLL(Sudoku, ans))
     {
         for (int i = 1; i <= boolnum; i++)
         {
@@ -1010,4 +1042,127 @@ int check(int sudoku[][9], int x, int y)
         }
     }
     return 1;
+}
+int DPLL(cnf *&CNF, int value[])
+{
+    cnf *p, *q, *r;
+    p = CNF, q = CNF;
+    charanode *boolnode;
+    int *num, max, maxpos; //num数组用来记录每个文字出现的次数，从而在其中找到应该被处理的那个文字
+    while (p != NULL)
+    {
+        while (p && isOneClause(p->head) == 0)
+            p = p->next;
+        if (p)
+        {
+            int singlekey = p->head->data;
+            if (singlekey > 0)
+                value[singlekey] = 1;
+            else
+                value[-singlekey] = 0;
+            for (q = CNF; q; q = r)
+            {
+                r = q->next;
+                for (boolnode = q->head; boolnode; boolnode = boolnode->next)
+                {
+                    if (boolnode->data == singlekey)
+                    {
+                        deleteClause(CNF, q);
+                        break;
+                    }
+                    if (boolnode->data == -singlekey)
+                    {
+                        deletechara(q->head, boolnode);
+                        break;
+                    }
+                }
+            }
+            if (CNF == NULL)
+            {
+                return 1;
+            }
+            else if (iswithEmptyClause(CNF))
+            {
+                deleteCNF(CNF);
+                return 0;
+            }
+            p = CNF;
+        }
+    }
+    num = (int *)malloc(sizeof(int) * (2 * boolnum + 2));
+    for (int i = 0; i <= 2 * boolnum; i++)
+        num[i] = 0;
+    for (p = CNF; p; p = p->next)
+    {
+        for (boolnode = p->head; boolnode; boolnode = boolnode->next)
+            if (boolnode->data > 0)
+                num[boolnode->data]++;
+            else
+                num[boolnum - boolnode->data]++;
+    }
+    max = 0;
+    maxpos = 0;
+    int ii;
+    int max1 = 0, MaxWord1;
+
+    //找到出现次数最多的正文字
+    for (ii = 2; ii <= boolnum; ii++)
+    {
+        if (max1 < num[ii])
+        {
+            max1 = num[ii];
+            MaxWord1 = ii;
+        }
+    }
+    int max2 = 0, MaxWord2;
+    //找到出现次数最多的负文字
+    for (ii = boolnum + 1; ii <= boolnum * 2; ii++)
+    {
+        if (max2 < num[ii])
+        {
+            max2 = num[ii];
+            MaxWord2 = -ii + boolnum;
+        }
+    }
+    if (max1 >= max2)
+    {
+        max = max1;
+        maxpos = MaxWord1;
+    }
+
+    else
+    {
+        max = max2;
+        maxpos = MaxWord2;
+    }
+
+    free(num);
+    p = (cnf *)malloc(sizeof(cnf));
+    p->head = (charanode *)malloc(sizeof(charanode));
+    p->head->data = maxpos;
+    p->head->next = NULL;
+    p->next = NULL;
+    q = NULL;
+    copyclause(q, CNF);
+    if (p != NULL)
+    {
+        p->next = q;
+        q = p;
+    }
+    if (DPLL(q, value) == 1)
+        return 1;
+    deleteCNF(q);
+    p = (cnf *)malloc(sizeof(cnf));
+    p->head = (charanode *)malloc(sizeof(charanode));
+    p->head->data = -maxpos;
+    p->head->next = NULL;
+    p->next = NULL;
+    if (p != NULL)
+    {
+        p->next = CNF;
+        CNF = p;
+    }
+    int i = DPLL(CNF, value);
+    deleteCNF(CNF);
+    return i;
 }
