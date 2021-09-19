@@ -1,14 +1,3 @@
-/*
- !@Author: ysj 
- todo@Date: 2021-09-16 16:38:01 
- ? @Last Modified by:   ysj 
-  @Last Modified time: 2021-09-16 16:38:01 
- */
-/**
- * @brief  
- * @note   
- * @retval 
- */
 #include<stdio.h>
 #define max(a,b) (a)>(b)?(a):(b)
 int main()
